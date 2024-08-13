@@ -1,0 +1,12 @@
+version: '3.8'
+services:
+  tech_bot:
+    image: skyline8880/tech_bot:latest
+    container_name: tech_bot
+    restart: on-failure
+    environment:
+      - TZ=Europe/Moscow
+    env_file:
+      - .env
+    ports:
+      - 80:85
