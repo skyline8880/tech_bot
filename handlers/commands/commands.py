@@ -28,6 +28,7 @@ async def dev_command(message: Message) -> None:
         position_id=1,
         department_id=3,
         phone='79998533965')
+    print('Main admin added')
 
 
 @router.message(Command('start'), IsPrivate(), ~IsAuth())
