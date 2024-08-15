@@ -75,3 +75,27 @@ def no_self_fire_message():
     return markdown.text(
             markdown.markdown_decoration.quote('Вы не можете уволить себя'),
             sep='\n')
+
+
+def no_self_hire_message():
+    return markdown.text(
+            markdown.markdown_decoration.quote('Вы не можете нанять себя'),
+            sep='\n')
+
+
+def no_access_hire_position_message(pos):
+    return markdown.text(
+            markdown.markdown_decoration.quote('У вас нет привилегии,'),
+            markdown.markdown_decoration.quote('для смены позиции'),
+            markdown.markdown_decoration.quote('дейстующего сотрудника'),
+            markdown.markdown_decoration.quote(f'c позиции: {pos}'),
+            sep='\n')
+
+
+def no_access_hire_department_message(dep):
+    return markdown.text(
+            markdown.markdown_decoration.quote('У вас нет привилегии,'),
+            markdown.markdown_decoration.quote('для смены отделения'),
+            markdown.markdown_decoration.quote('дейстующего сотрудника'),
+            markdown.markdown_decoration.quote(f'с отделения: {dep}'),
+            sep='\n')

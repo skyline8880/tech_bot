@@ -22,8 +22,11 @@ from messages.users import (choose_department_message, choose_position_message,
                             employee_was_hired_message,
                             employee_wrong_phone_message,
                             no_access_department_message,
+                            no_access_hire_department_message,
+                            no_access_hire_position_message,
                             no_access_position_message,
-                            no_employee_phone_message, no_self_fire_message)
+                            no_employee_phone_message, no_self_fire_message,
+                            no_self_hire_message)
 from states.states import ActionsToEmployee, CreatorRequest
 
 router = Router()
@@ -53,21 +56,19 @@ async def get_phone(message: Message, state: FSMContext) -> None:
     db = Database()
     data = await state.get_data()
     action = data['action']
+    required_user = await db.get_employee_by_sign(message.text)
+    user_data = await db.get_employee_by_sign(message.from_user.id)
+    await message.delete()
     if action == CreatorButtons.FIRE.value:
-        required_user = await db.get_employee_by_sign(message.text)
         if required_user is None:
-            await message.delete()
             await message.answer(
                 text=no_employee_phone_message(message.text))
             return
-        user_data = await db.get_employee_by_sign(message.from_user.id)
         if user_data[1] == required_user[1]:
-            await message.delete()
             await message.answer(
                 text=no_self_fire_message())
             return
         if user_data[4] >= required_user[4]:
-            await message.delete()
             await message.answer(
                 text=no_access_position_message(required_user[5]))
             return
@@ -81,6 +82,22 @@ async def get_phone(message: Message, state: FSMContext) -> None:
         await message.answer(
             text=employee_was_fired_message(message.text))
         return
+    if user_data[8] == message.text:
+        await message.answer(
+            text=no_self_hire_message())
+        return
+    if required_user is not None:
+        if required_user[0]:
+            if user_data[4] >= required_user[4]:
+                await message.answer(
+                    text=no_access_hire_position_message(required_user[5]))
+                return
+            if user_data[4] == 3:
+                if user_data[6] != required_user[6]:
+                    await message.answer(
+                        text=no_access_hire_department_message(
+                            required_user[7]))
+                    return
     await state.update_data(phone=message.text)
     await bot.clear_messages(message=message, state=state, finish=False)
     await state.set_state(ActionsToEmployee.department_id)
