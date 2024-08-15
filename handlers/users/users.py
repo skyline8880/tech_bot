@@ -21,7 +21,9 @@ from messages.users import (choose_department_message, choose_position_message,
                             employee_was_fired_message,
                             employee_was_hired_message,
                             employee_wrong_phone_message,
-                            no_employee_phone_message)
+                            no_access_department_message,
+                            no_access_position_message,
+                            no_employee_phone_message, no_self_fire_message)
 from states.states import ActionsToEmployee, CreatorRequest
 
 router = Router()
@@ -52,11 +54,28 @@ async def get_phone(message: Message, state: FSMContext) -> None:
     data = await state.get_data()
     action = data['action']
     if action == CreatorButtons.FIRE.value:
-        if await db.get_employee_by_sign(message.text) is None:
+        required_user = await db.get_employee_by_sign(message.text)
+        if required_user is None:
             await message.delete()
             await message.answer(
                 text=no_employee_phone_message(message.text))
             return
+        user_data = await db.get_employee_by_sign(message.from_user.id)
+        if user_data[1] == required_user[1]:
+            await message.delete()
+            await message.answer(
+                text=no_self_fire_message())
+            return
+        if user_data[4] >= required_user[4]:
+            await message.delete()
+            await message.answer(
+                text=no_access_position_message(required_user[5]))
+            return
+        if user_data[4] == 3:
+            if user_data[6] != required_user[6]:
+                await message.answer(
+                    text=no_access_department_message(required_user[7]))
+                return
         await db.update_employee_activity(message.text, False)
         await bot.clear_messages(message=message, state=state, finish=True)
         await message.answer(

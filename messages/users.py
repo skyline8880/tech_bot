@@ -53,3 +53,25 @@ def choose_position_message():
     return markdown.text(
             markdown.markdown_decoration.quote('Выберите позицию.'),
             sep='\n')
+
+
+def no_access_department_message(dep):
+    return markdown.text(
+            markdown.markdown_decoration.quote('У вас нет привилегии,'),
+            markdown.markdown_decoration.quote('для увольнения сотрудника'),
+            markdown.markdown_decoration.quote(f'отделения: {dep}'),
+            sep='\n')
+
+
+def no_access_position_message(pos):
+    return markdown.text(
+            markdown.markdown_decoration.quote('У вас нет привилегии,'),
+            markdown.markdown_decoration.quote('для увольнения сотрудника'),
+            markdown.markdown_decoration.quote(f'с позиции: {pos}'),
+            sep='\n')
+
+
+def no_self_fire_message():
+    return markdown.text(
+            markdown.markdown_decoration.quote('Вы не можете уволить себя'),
+            sep='\n')
