@@ -30,7 +30,7 @@ async def dev_command(message: Message) -> None:
         phone='79998533965')
     await db.insert_into_employee_hire(
         position_id=4,
-        department_id=3,
+        department_id=2,
         phone='79991124257')
 
 

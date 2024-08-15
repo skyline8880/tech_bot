@@ -70,10 +70,17 @@ SELECT_EMPLOYEE_BY_SIGN = f'''
     ON emp.position_id = pos.id
     LEFT JOIN {Tables.SCHEMA}.{Tables.DEPARTMENT} AS dep
     ON emp.department_id = dep.id
-    WHERE telegram_id::VARCHAR = %(employee_sign)s
-    OR phone::VARCHAR = %(employee_sign)s
-    OR username::VARCHAR = %(employee_sign)s
-    OR full_name::VARCHAR = %(employee_sign)s
+    WHERE emp.telegram_id::VARCHAR = %(employee_sign)s
+    OR emp.phone::VARCHAR = %(employee_sign)s
+    OR emp.username::VARCHAR = %(employee_sign)s
+    OR emp.full_name::VARCHAR = %(employee_sign)s
+'''
+SELECT_EXECUTORS_BY_DEPRTMENT_ID = f'''
+    SELECT
+        telegram_id
+    FROM {Tables.SCHEMA}.{Tables.EMPLOYEE}
+    WHERE position_id = 4 AND is_active = TRUE
+    AND department_id = %(department_id)s
 '''
 SELECT_REQUESTS = f'''
     SELECT
@@ -386,4 +393,60 @@ SELECT_EXECUTOR_OWN_ACTIVE_REQUEST_LIST = f'''
     WHERE status_id < 5 AND executor_telegram_id = %(executor_telegram_id)s
     AND department_id = %(department_id)s
     ORDER BY create_date;
+'''
+SELECT_STATISTIC_OF_DEPARTMENTS = f'''
+    WITH new AS (
+        SELECT
+            department_id,
+            COUNT(status_id)
+        FROM {Tables.SCHEMA}.{Tables.REQUEST}
+        WHERE status_id = 1
+        GROUP BY department_id
+        ),
+        tech_work AS (
+        SELECT
+            department_id,
+            COUNT(status_id)
+        FROM {Tables.SCHEMA}.{Tables.REQUEST}
+        WHERE status_id = 2
+        GROUP BY department_id
+        ),
+        mgrtech_work AS (
+        SELECT
+            department_id,
+            COUNT(status_id)
+        FROM {Tables.SCHEMA}.{Tables.REQUEST}
+        WHERE status_id = 3
+        GROUP BY department_id
+        ),
+        headtech_work AS (
+        SELECT
+            department_id,
+            COUNT(status_id)
+        FROM {Tables.SCHEMA}.{Tables.REQUEST}
+        WHERE status_id = 4
+        GROUP BY department_id
+        ),
+        done AS (
+        SELECT
+            department_id,
+            COUNT(status_id)
+        FROM {Tables.SCHEMA}.{Tables.REQUEST}
+        WHERE status_id = 5
+        GROUP BY department_id
+        )
+    SELECT
+        dep.id,
+        dep.name,
+        new.count,
+        techw.count,
+        mgr.count,
+        head.count,
+        done.count
+    FROM {Tables.SCHEMA}.{Tables.DEPARTMENT} AS dep
+    LEFT JOIN new AS new ON new.department_id = dep.id
+    LEFT JOIN tech_work AS techw ON techw.department_id = dep.id
+    LEFT JOIN mgrtech_work AS mgr ON mgr.department_id = dep.id
+    LEFT JOIN headtech_work AS head ON head.department_id = dep.id
+    LEFT JOIN done AS done ON done.department_id = dep.id
 '''

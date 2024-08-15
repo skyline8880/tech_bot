@@ -45,7 +45,7 @@ def employee_was_hired_message(phone):
 
 def choose_department_message():
     return markdown.text(
-            markdown.markdown_decoration.quote('Выберите локацию.'),
+            markdown.markdown_decoration.quote('Выберите отделение.'),
             sep='\n')
 
 

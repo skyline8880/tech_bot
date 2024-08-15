@@ -17,9 +17,11 @@ from core.secrets import get_path
 from database.database import Database
 from keyboards.menu import (create_current_request_menu,
                             create_menu_by_position, create_request_list_menu,
-                            create_request_menu)
+                            create_request_menu, current_request_keyboard,
+                            menu_keyboard)
 from messages.intro import auth_employee_pos_and_dep_message
 from messages.request import (bitrix_creat_deal_error_message,
+                              done_request_message, new_request_message,
                               request_action_message, request_detail_message,
                               request_list_message)
 
@@ -60,9 +62,12 @@ class TechBot(Bot):
                 except Exception:
                     pass
         except Exception:
-            await self.delete_message(
-                chat_id=message.chat.id,
-                message_id=message.message_id)
+            try:
+                await self.delete_message(
+                    chat_id=message.chat.id,
+                    message_id=message.message_id)
+            except Exception:
+                pass
         if finish:
             await state.clear()
 
@@ -128,6 +133,10 @@ class TechBot(Bot):
                 start_date=current_deal[28],
                 deal_id=current_deal[0],
                 department_id=current_deal[1])
+            department_id = data['department_id']
+            title = data['short_description']
+            await self.clear_messages(
+                message=message, state=state, finish=True)
             user_data = await db.get_employee_by_sign(message.from_user.id)
             is_creator = False
             is_executor = False
@@ -144,6 +153,26 @@ class TechBot(Bot):
                     request_status_id=current_deal[3],
                     is_creator=is_creator,
                     is_executor=is_executor))
+            executors = await db.get_executors(
+                department_id=department_id)
+            if executors is None or executors == []:
+                return
+            for executor in executors:
+                try:
+                    await self.send_message(
+                        chat_id=executor[0],
+                        text=new_request_message(),
+                        reply_markup=current_request_keyboard(
+                            department_id=department_id,
+                            deal_id=deal_id,
+                            title=title
+                        )
+                    )
+                except Exception:
+                    print(
+                        'Ошибка отправки заявки исполнителю\n'
+                        f'ID: {department_id}/{deal_id}\n'
+                        f'TITLE: {title}')
 
     async def open_current_request(
             self,
@@ -162,9 +191,6 @@ class TechBot(Bot):
             current_deal = await db.get_current_request_of_department(
                 department_id=depatment_id,
                 bitrix_deal_id=deal_id)
-            photo_data = current_deal[15]
-            if current_deal[3] == 5:
-                photo_data = current_deal[26]
             user_data = await db.get_employee_by_sign(query.from_user.id)
             is_creator = False
             is_executor = False
@@ -172,15 +198,20 @@ class TechBot(Bot):
             # is_creator = True
             if current_deal[18] == user_data[1]:
                 is_executor = True
+            photo_data = current_deal[15]
+            actual_keyboard = create_current_request_menu(
+                position_id=user_data[4],
+                request_status_id=current_deal[3],
+                is_creator=is_creator,
+                is_executor=is_executor)
+            if current_deal[3] == 5:
+                photo_data = current_deal[26]
+                actual_keyboard = menu_keyboard
             await self.send_photo(
                 chat_id=query.from_user.id,
                 photo=photo_data,
                 caption=request_detail_message(current_deal),
-                reply_markup=create_current_request_menu(
-                    position_id=user_data[4],
-                    request_status_id=current_deal[3],
-                    is_creator=is_creator,
-                    is_executor=is_executor))
+                reply_markup=actual_keyboard)
 
     async def open_any_request_list(self, query: CallbackQuery, page: int):
         db = Database()
@@ -268,11 +299,21 @@ class TechBot(Bot):
                 department_id=data['department_id'],
                 bitrix_deal_id=data['deal_id'])
             user_data = await db.get_employee_by_sign(message.from_user.id)
+            current_request = await db.get_current_request_of_department(
+                department_id=data['department_id'],
+                bitrix_deal_id=data['deal_id'])
             if user_data[4] == 4:
                 await db.update_executor_in_request(
                     executor_telegram_id=message.from_user.id,
                     department_id=data['department_id'],
                     bitrix_deal_id=data['deal_id'])
+                await self.send_message(
+                    chat_id=current_request[5],
+                    text=done_request_message(),
+                    reply_markup=current_request_keyboard(
+                        department_id=current_request[1],
+                        deal_id=current_request[0],
+                        title=current_request[16]))
                 await self.clear_messages(
                     message=message, state=state, finish=True)
                 await message.answer(
@@ -281,6 +322,14 @@ class TechBot(Bot):
                     reply_markup=create_menu_by_position(
                         position_id=user_data[4]))
                 return
+            if current_request[5] != message.from_user.id:
+                await self.send_message(
+                    chat_id=current_request[5],
+                    text=done_request_message(),
+                    reply_markup=current_request_keyboard(
+                        department_id=current_request[1],
+                        deal_id=current_request[0],
+                        title=current_request[16]))
             await self.clear_messages(
                 message=message, state=state, finish=True)
             await message.answer(
@@ -338,16 +387,14 @@ class TechBot(Bot):
         scheduler_24_hours.add_job(
             func=self.track_24_hours,
             trigger='date',
-            run_date=start_date + dt.timedelta(seconds=20),
-            # run_date=start_date + dt.timedelta(hours=24),
+            run_date=start_date + dt.timedelta(hours=24),
             kwargs={'deal_id': deal_id, 'department_id': department_id}
         )
 
         scheduler_72_hours.add_job(
             func=self.track_72_hours,
             trigger='date',
-            run_date=start_date + dt.timedelta(seconds=40),
-            # run_date=start_date + dt.timedelta(hours=72),
+            run_date=start_date + dt.timedelta(hours=72),
             kwargs={'deal_id': deal_id, 'department_id': department_id}
         )
         scheduler_24_hours.start()

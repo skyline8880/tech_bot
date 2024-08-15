@@ -24,7 +24,7 @@ def auth_employee_pos_and_dep_message(
         department):
     return markdown.text(
         markdown.text(
-            markdown.markdown_decoration.quote('Локация:'),
+            markdown.markdown_decoration.quote('Отделение:'),
             f'{markdown.bold(department)}'),
         markdown.text(
             markdown.markdown_decoration.quote('Позиция:'),
@@ -35,7 +35,7 @@ def auth_employee_pos_and_dep_message(
 def auth_employee_no_dep_and_pos_message():
     return markdown.text(
             markdown.markdown_decoration.quote('Вам не назначена позиция'),
-            markdown.markdown_decoration.quote('и локация для работы.'),
+            markdown.markdown_decoration.quote('и отделение для работы.'),
             markdown.markdown_decoration.quote(
                 'Администратору или Топ-сотруднику,'),
             markdown.markdown_decoration.quote(

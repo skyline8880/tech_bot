@@ -101,7 +101,7 @@ def request_detail_message(request_data):
             f'{markdown.bold(request_data[28].date())}',
             f'{markdown.bold(time)}'),
         markdown.text(
-            markdown.markdown_decoration.quote('Локация:'),
+            markdown.markdown_decoration.quote('Отделение:'),
             f'{markdown.bold(request_data[2])}'),
         markdown.text(
             markdown.markdown_decoration.quote('Статус:'),
@@ -142,4 +142,18 @@ def request_list_message(position_id, is_own):
             f'Список {list_type} незавершённых заявок'),
         markdown.markdown_decoration.quote(
             f'по {object_relation}.'),
+        sep='\n')
+
+
+def new_request_message():
+    return markdown.text(
+        markdown.markdown_decoration.quote(
+            '❗️На объекте новая заявка❗️'),
+        sep='\n')
+
+
+def done_request_message():
+    return markdown.text(
+        markdown.markdown_decoration.quote(
+            '❗️Заявка завершена❗️'),
         sep='\n')

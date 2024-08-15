@@ -14,8 +14,9 @@ from database.query.select import (
     SELECT_DEPARTMENT_ACTIVE_REQUEST_LIST,
     SELECT_DEPARTMENT_REQUESTS_BY_STATUS, SELECT_DEPERTMENT_BY_SIGN,
     SELECT_EMPLOYEE_BY_SIGN, SELECT_EXECUTOR_OWN_ACTIVE_REQUEST_LIST,
-    SELECT_POSITION_BY_SIGN, SELECT_REQUESTS, SELECT_REQUESTS_BY_DEPARTMENT,
-    SELECT_REQUESTS_BY_STATUS, SELECT_STATUS_BY_SIGN)
+    SELECT_EXECUTORS_BY_DEPRTMENT_ID, SELECT_POSITION_BY_SIGN, SELECT_REQUESTS,
+    SELECT_REQUESTS_BY_DEPARTMENT, SELECT_REQUESTS_BY_STATUS,
+    SELECT_STATISTIC_OF_DEPARTMENTS, SELECT_STATUS_BY_SIGN)
 from database.query.update import (UPDATE_CREATOR_IN_REQUESTS,
                                    UPDATE_EMPLOYEE_ACTIVITY,
                                    UPDATE_EMPLOYEE_DATA_BY_PHONE,
@@ -301,6 +302,31 @@ class Database:
             await connection.close()
             return result
         await cursor.execute(query=SELECT_ANY_ACTIVE_REQUEST_LIST)
+        result = await cursor.fetchall()
+        await connection.close()
+        return result
+
+    async def get_executors(self, department_id):
+        connection = await CreateConnection()
+        cursor = connection.cursor()
+        await cursor.execute(
+            query=SELECT_EXECUTORS_BY_DEPRTMENT_ID,
+            params={'department_id': department_id})
+        result = await cursor.fetchall()
+        await connection.close()
+        return result
+
+    async def get_statistic_of_departments(self, department_id=None):
+        WHERE_DEPARTMENT_ID = '\nWHERE dep.id = %(department_id)s'
+        params = {'department_id': department_id}
+        if department_id is None:
+            WHERE_DEPARTMENT_ID = ''
+            params = None
+        connection = await CreateConnection()
+        cursor = connection.cursor()
+        await cursor.execute(
+            query=(f'{SELECT_STATISTIC_OF_DEPARTMENTS}{WHERE_DEPARTMENT_ID}'),
+            params=params)
         result = await cursor.fetchall()
         await connection.close()
         return result

@@ -358,3 +358,17 @@ def create_request_list_menu(page, data, position_id):
     request_list_buttons.append(menu_button)
     return InlineKeyboardMarkup(
         row_width=1, inline_keyboard=request_list_buttons)
+
+
+def current_request_keyboard(department_id, deal_id, title):
+    request_button = [
+        InlineKeyboardButton(
+            text=f'{department_id}/{deal_id}: {title}',
+            callback_data=GetCurrentRequestCallbackData(
+                request_id=deal_id,
+                department_id=department_id
+            ).pack()
+        )
+    ]
+    return InlineKeyboardMarkup(
+        row_width=1, inline_keyboard=[request_button])
