@@ -1,13 +1,15 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 from bitrix_api.bitrix_api import BitrixMethods
-from constants.buttons_init import (ActionButtons, CreatorButtons,
+from constants.buttons_init import (ActionButtons, CreateZoneKeyboard,
+                                    CreatorButtons,
                                     CurrentRequestActionButtons,
                                     RequestButtons)
 from constants.database_init import Department, Position
 from filters.callback_filters import (BreakTypeCallbackData,
                                       CurrentRequestActionCallbackData,
                                       DepartmentCallbackData,
+                                      FloorCallbackData,
                                       GetCurrentRequestCallbackData,
                                       PositionCallbackData,
                                       RequestActionCallbackData,
@@ -152,12 +154,48 @@ def create_positions_menu(position_id):
         row_width=1, inline_keyboard=menu_buttons)
 
 
-async def create_zone_menu(department_id):
-    bm = await BitrixMethods(
-        department_sign=department_id).collect_portal_data()
-    zone_data = await bm.get_zone_key_value()
+async def create_floor_menu(floor_data):
     menu_buttons = []
     btn_row = []
+    for name in floor_data.keys():
+        btn_row.append(
+            InlineKeyboardButton(
+                text=f'{name}',
+                callback_data=FloorCallbackData(
+                    floor=f'{name}').pack()))
+        if len(btn_row) == 2:
+            menu_buttons.append(btn_row)
+            btn_row = []
+    if btn_row != []:
+        menu_buttons.append(btn_row)
+    menu_buttons.append(back_button)
+    return InlineKeyboardMarkup(
+        row_width=2, inline_keyboard=menu_buttons)
+
+
+async def create_zone_menu(department_id, floor=None):
+    menu_buttons = []
+    btn_row = []
+    if floor is None:
+        bm = await BitrixMethods(
+            department_sign=department_id).collect_portal_data()
+        zone_data = await bm.get_zone_key_value()
+        for name in zone_data.keys():
+            btn_row.append(
+                InlineKeyboardButton(
+                    text=f'🧾 {name}',
+                    callback_data=ZoneCallbackData(
+                        zone=f'🧾 {name}').pack()))
+            if len(btn_row) == 2:
+                menu_buttons.append(btn_row)
+                btn_row = []
+        if btn_row != []:
+            menu_buttons.append(btn_row)
+        menu_buttons.append(back_button)
+        return InlineKeyboardMarkup(
+            row_width=2, inline_keyboard=menu_buttons)
+    zone_data = await CreateZoneKeyboard(
+        department_id).get_floor_area_dict(floor=floor)
     for name in zone_data.keys():
         btn_row.append(
             InlineKeyboardButton(

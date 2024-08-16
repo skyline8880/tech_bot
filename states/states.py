@@ -11,6 +11,7 @@ class CreatorRequest(StatesGroup):
     creator_telegram_id = State()
     status_id = State()
     department_id = State()
+    floor = State()
     zone = State()
     break_type = State()
     creator_photo = State()

@@ -2,7 +2,8 @@ from aiogram.filters.callback_data import CallbackData
 
 from constants.buttons_init import (ActionButtons, CreatorButtons,
                                     CurrentRequestActionButtons,
-                                    ExecutorButtons, RequestButtons)
+                                    DepartmentFloor, ExecutorButtons,
+                                    RequestButtons)
 from constants.database_init import Position
 
 
@@ -54,3 +55,7 @@ class RequestNavigationCallbackData(CallbackData, prefix='move_to_page'):
 
 class RequestPageInfoCallbackData(CallbackData, prefix='page_is'):
     page: int
+
+
+class FloorCallbackData(CallbackData, prefix='floor_is'):
+    floor: DepartmentFloor

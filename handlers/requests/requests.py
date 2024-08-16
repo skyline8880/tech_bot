@@ -14,6 +14,7 @@ from constants.buttons_init import (CreatorButtons,
 from database.database import Database
 from filters.callback_filters import (BreakTypeCallbackData,
                                       CurrentRequestActionCallbackData,
+                                      FloorCallbackData,
                                       GetCurrentRequestCallbackData,
                                       RequestActionCallbackData,
                                       RequestNavigationCallbackData,
@@ -24,7 +25,8 @@ from filters.message_filters import (IsActive, IsAdmin, IsMainAdmin, IsPhoto,
                                      IsPrivate, IsText, IsTop)
 from keyboards.menu import (back_keyboard, cancel_keyboard,
                             create_break_type_menu, create_departments_menu,
-                            create_menu_by_position, create_request_menu)
+                            create_menu_by_position, create_request_menu,
+                            create_zone_menu)
 from messages.intro import auth_employee_pos_and_dep_message
 from messages.request import (bitrix_creat_deal_error_message,
                               request_action_message,
@@ -35,7 +37,7 @@ from messages.request import (bitrix_creat_deal_error_message,
                               request_report_text_message,
                               request_short_desc_message,
                               request_wrong_photo_message,
-                              request_wrong_text_message)
+                              request_wrong_text_message, request_zone_message)
 from messages.users import choose_department_message
 from states.states import CloseRequest, CreatorRequest
 
@@ -81,6 +83,24 @@ async def create_request_action(
             text=choose_department_message(),
             reply_markup=create_departments_menu(
                 position_id=user_data[4], department_id=user_data[6]))
+
+
+@router.callback_query(
+        FloorCallbackData.filter(),
+        IsActive(), or_f(IsMainAdmin(), IsAdmin(), IsTop()))
+async def choose_floor_action(
+        query: CallbackQuery, state: FSMContext) -> None:
+    current_query_data = query.data.split(':')[-1]
+    await query.answer(current_query_data)
+    await query.message.delete()
+    data = await state.get_data()
+    await state.update_data(floor=current_query_data)
+    await state.set_state(CreatorRequest.zone)
+    await query.message.answer(
+        text=request_zone_message(),
+        reply_markup=await create_zone_menu(
+            department_id=data['department_id'],
+            floor=current_query_data))
 
 
 @router.callback_query(

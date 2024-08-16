@@ -12,6 +12,13 @@ def request_action_message(action):
         sep='\n')
 
 
+def request_floor_message():
+    return markdown.text(
+        markdown.markdown_decoration.quote(
+            'Выберите этаж или территорию объекта.'),
+        sep='\n')
+
+
 def request_zone_message():
     return markdown.text(
         markdown.markdown_decoration.quote('Выберите зону неисправности.'),

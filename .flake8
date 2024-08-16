@@ -10,4 +10,5 @@ exclude =
     old,
     build,
     dist
+    test.py
 max-complexity = 10

@@ -1,30 +1,18 @@
-""" import asyncio
+import asyncio
 
+from bitrix_api.bitrix_api import BitrixMethods
 from database.connection.connection import CreateConnection
-from database.query.select import SELECT_STATISTIC_OF_DEPARTMENTS
 
 
 async def test():
-    con = await CreateConnection()
-    cur = con.cursor()
-    is_admin = 3
-    WHERE_DEPARTMENT_ID = '\nWHERE dep.id = %(department_id)s'
-    params = {'department_id': 2}
-    if is_admin is None:
-        WHERE_DEPARTMENT_ID = ''
-        params = None
-    await cur.execute(
-        query=f'{SELECT_STATISTIC_OF_DEPARTMENTS}{WHERE_DEPARTMENT_ID}',
-        params=params
-    )
-    print(await cur.fetchall())
-    for data in await cur.fetchall():
-        print(data)
+    bm = await BitrixMethods(4).collect_portal_data()
+    for k, v in (await bm.get_zone_key_value()).items():
+        print(k, v)
 
 if __name__ == '__main__':
-    asyncio.run(main=test()) """
+    asyncio.run(main=test())
 
-import sqlite3
+""" import sqlite3
 
 con = sqlite3.connect('account.db')
 cur = con.cursor()
@@ -81,3 +69,4 @@ def select_all_data():
 
 
 select_all_data()
+ """
