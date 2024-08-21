@@ -33,6 +33,8 @@ CREATE_STRUCTURE = f'''
         telegram_id BIGINT,
         username VARCHAR(250),
         full_name VARCHAR(250),
+        last_name VARCHAR(250),
+        first_name VARCHAR(250),
         position_id INTEGER,
         department_id INTEGER,
         phone VARCHAR(15) NOT NULL UNIQUE

@@ -25,6 +25,7 @@ from database.query.update import (UPDATE_CREATOR_IN_REQUESTS,
                                    UPDATE_EXECUTOR_IN_REQUESTS,
                                    UPDATE_PHOTO_AND_REPORT_IN_REQUEST,
                                    UPDATE_POSITION_ID_DEPARTMENT_ID_EMPLOYEE,
+                                   UPDATE_REPORT_IN_CURRENT_REQUEST,
                                    UPDATE_STATUS_ID_IN_CURRENT_REQUEST)
 
 
@@ -54,13 +55,14 @@ class Database:
         await connection.commit()
         await connection.close()
 
-    async def insert_into_employee_auth(self, message):
-        (
+    async def insert_into_employee_auth(
+            self,
             telegram_id,
             username,
             full_name,
-            phone
-                ) = await self.split_users_data(message)
+            last_name,
+            first_name,
+            phone=None):
         if username is not None:
             username = f'@{username}'
         connection = await CreateConnection()
@@ -72,6 +74,8 @@ class Database:
                     'telegram_id': telegram_id,
                     'username': username,
                     'full_name': full_name,
+                    'last_name': last_name,
+                    'first_name': first_name,
                     'phone': phone})
         except psycopg.errors.UniqueViolation:
             await connection.rollback()
@@ -81,6 +85,8 @@ class Database:
                     'telegram_id': telegram_id,
                     'username': username,
                     'full_name': full_name,
+                    'last_name': last_name,
+                    'first_name': first_name,
                     'phone': phone})
             await cursor.execute(
                 query=UPDATE_CREATOR_IN_REQUESTS,
@@ -342,17 +348,27 @@ class Database:
         await connection.commit()
         await connection.close()
 
-    async def update_employee_by_telegram_id(self, employee_data):
-        connection = await CreateConnection()
-        cursor = connection.cursor()
-        await cursor.execute(
-            query=UPDATE_EMPLOYEE_DATA_BY_TELEGRAM_ID,
-            params={
-                'username': None,
-                'full_name': None,
-                'telegram_id': None})
-        await connection.commit()
-        await connection.close()
+    async def update_employee_by_telegram_id(self, message):
+        telegram_id = message.from_user.id
+        username = message.from_user.username
+        full_name = message.from_user.full_name
+        empl_data = await self.get_employee_by_sign(employee_sign=telegram_id)
+        need_update = False
+        if f'@{username}' != empl_data[2] or full_name != empl_data[3]:
+            need_update = True
+            if username is not None:
+                username = f'@{username}'
+        if need_update:
+            connection = await CreateConnection()
+            cursor = connection.cursor()
+            await cursor.execute(
+                query=UPDATE_EMPLOYEE_DATA_BY_TELEGRAM_ID,
+                params={
+                    'username': username,
+                    'full_name': full_name,
+                    'telegram_id': telegram_id})
+            await connection.commit()
+            await connection.close()
 
     async def update_executor_in_request(
             self,
@@ -399,6 +415,22 @@ class Database:
             query=UPDATE_STATUS_ID_IN_CURRENT_REQUEST,
             params={
                 'status_id': status_id,
+                'department_id': department_id,
+                'bitrix_deal_id': bitrix_deal_id})
+        await connection.commit()
+        await connection.close()
+
+    async def update_report_in_request(
+            self,
+            report,
+            department_id,
+            bitrix_deal_id):
+        connection = await CreateConnection()
+        cursor = connection.cursor()
+        await cursor.execute(
+            query=UPDATE_REPORT_IN_CURRENT_REQUEST,
+            params={
+                'report': report,
                 'department_id': department_id,
                 'bitrix_deal_id': bitrix_deal_id})
         await connection.commit()

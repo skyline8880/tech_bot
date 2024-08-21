@@ -13,6 +13,7 @@ class RequestButtons(Enum):
     CREATEREQUEST = '➕ Создать заявку'
     MYREQUESTS = '📑 Мои заявки'
     REQUESTLIST = '📄 Список заявок'
+    FINDREQUEST = '🔍 Найти заявку'
 
 
 class ExecutorButtons(Enum):

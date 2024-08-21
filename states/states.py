@@ -4,6 +4,8 @@ from aiogram.fsm.state import State, StatesGroup
 class AuthStart(StatesGroup):
     start_message = State()
     phone_number = State()
+    last_name = State()
+    first_name = State()
 
 
 class CreatorRequest(StatesGroup):
@@ -41,3 +43,15 @@ class ActionsToEmployee(StatesGroup):
     phone = State()
     department_id = State()
     position_id = State()
+
+
+class RequestSign(StatesGroup):
+    start_message = State()
+    sign = State()
+
+
+class HandoverRequest(StatesGroup):
+    start_message = State()
+    department_id = State()
+    deal_id = State()
+    comment = State()

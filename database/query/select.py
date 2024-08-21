@@ -64,7 +64,9 @@ SELECT_EMPLOYEE_BY_SIGN = f'''
         pos.name,
         emp.department_id,
         dep.name,
-        emp.phone
+        emp.phone,
+        emp.last_name,
+        emp.first_name
     FROM {Tables.SCHEMA}.{Tables.EMPLOYEE} AS emp
     LEFT JOIN {Tables.SCHEMA}.{Tables.POSITION} AS pos
     ON emp.position_id = pos.id
@@ -316,7 +318,11 @@ SELECT_CURRENT_REQUEST_OF_DEPARTMENT = f'''
         epos.name AS executor_position,
         req.executor_photo AS executor_photo,
         req.report AS report,
-        req.create_date AS create_date
+        req.create_date AS create_date,
+        cemp.last_name AS creator_last_name,
+        cemp.first_name AS creator_first_name,
+        eemp.last_name AS executor_last_name,
+        eemp.first_name AS executor_first_name
     FROM {Tables.SCHEMA}.{Tables.REQUEST} AS req
     LEFT JOIN {Tables.SCHEMA}.{Tables.DEPARTMENT} AS dep
     ON req.department_id = dep.id

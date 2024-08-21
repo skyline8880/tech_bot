@@ -13,6 +13,31 @@ def unauth_greeting_message(name):
         sep='\n')
 
 
+def contact_success():
+    return markdown.text(
+            markdown.markdown_decoration.quote('Контакт принят!'),
+            sep='\n')
+
+
+def enter_last_name():
+    return markdown.text(
+            markdown.markdown_decoration.quote('Введите фамилию'),
+            sep='\n')
+
+
+def enter_first_name():
+    return markdown.text(
+            markdown.markdown_decoration.quote('Введите имя'),
+            sep='\n')
+
+
+def wrong_full_name():
+    return markdown.text(
+            markdown.markdown_decoration.quote(
+                'Введите личные данные корректно!'),
+            sep='\n')
+
+
 def auth_success():
     return markdown.text(
             markdown.markdown_decoration.quote('Регистрация прошла успешно!'),
@@ -21,8 +46,14 @@ def auth_success():
 
 def auth_employee_pos_and_dep_message(
         position,
-        department):
+        department,
+        last_name,
+        first_name):
     return markdown.text(
+        markdown.text(
+            markdown.markdown_decoration.quote('Пользователь:'),
+            f'{markdown.bold(last_name)}',
+            f'{markdown.bold(first_name)}'),
         markdown.text(
             markdown.markdown_decoration.quote('Отделение:'),
             f'{markdown.bold(department)}'),

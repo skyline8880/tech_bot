@@ -93,16 +93,20 @@ def bitrix_creat_deal_error_message():
 
 def request_detail_message(request_data):
     executor = request_data[21]
+    executor_fullname = f'{request_data[31]} {request_data[32]}'
     report = request_data[27]
     if executor is None:
-        executor = 'Не принят в работу'
+        executor = ' - '
+        executor_fullname = 'Не принят в работу'
     if report is None:
         report = 'Работа не проведена'
+    deal_id = f'{request_data[1]}/{request_data[0]}'
+    creator_fullname = f'{request_data[29]} {request_data[30]}'
     time = dt.datetime.strftime(request_data[28], "%H:%M")
     return markdown.text(
         markdown.text(
             markdown.markdown_decoration.quote('ID сделки:'),
-            f'{markdown.bold(request_data[0])}'),
+            f'{markdown.bold(deal_id)}'),
         markdown.text(
             markdown.markdown_decoration.quote('Дата создания:'),
             f'{markdown.bold(request_data[28].date())}',
@@ -115,6 +119,9 @@ def request_detail_message(request_data):
             f'{markdown.bold(request_data[4])}'),
         markdown.text(
             markdown.markdown_decoration.quote('Постановщик:'),
+            f'{markdown.bold(creator_fullname)}'),
+        markdown.text(
+            markdown.markdown_decoration.quote('Телефон:'),
             f'{markdown.bold(request_data[8])}'),
         markdown.text(
             markdown.markdown_decoration.quote('Зона:'),
@@ -130,6 +137,9 @@ def request_detail_message(request_data):
             f'{markdown.bold(request_data[17])}'),
         markdown.text(
             markdown.markdown_decoration.quote('Исполнитель:'),
+            f'{markdown.bold(executor_fullname)}'),
+        markdown.text(
+            markdown.markdown_decoration.quote('Телефон:'),
             f'{markdown.bold(executor)}'),
         markdown.text(
             markdown.markdown_decoration.quote('Отчёт:'),
@@ -163,4 +173,45 @@ def done_request_message():
     return markdown.text(
         markdown.markdown_decoration.quote(
             '❗️Заявка завершена❗️'),
+        sep='\n')
+
+
+def enter_request_sign_message():
+    return markdown.text(
+        markdown.markdown_decoration.quote(
+            'Введите номер сделки:'),
+        markdown.markdown_decoration.quote(
+            'например - 1/00001'),
+        sep='\n')
+
+
+def no_request_message():
+    return markdown.text(
+        markdown.markdown_decoration.quote(
+            'По данным параметрам нет заявки!'),
+        sep='\n')
+
+
+def wrong_request_sign_message():
+    return markdown.text(
+        markdown.markdown_decoration.quote(
+            'Некорректный формат ввода!'),
+        sep='\n')
+
+
+def wrong_request_department_message():
+    return markdown.text(
+        markdown.markdown_decoration.quote(
+            'У вас нет доступа к заявкам'),
+        markdown.markdown_decoration.quote(
+            'другого отделения!'),
+        sep='\n')
+
+
+def handover_description_message():
+    return markdown.text(
+        markdown.markdown_decoration.quote(
+            'Опишите причину предачи'),
+        markdown.markdown_decoration.quote(
+            'заявки в работу МЭО'),
         sep='\n')

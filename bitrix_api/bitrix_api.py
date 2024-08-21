@@ -61,24 +61,22 @@ class BitrixMethods():
         return self
 
     async def get_bitrix_deal_list(self):
+        url = f'{self.dep_link}{self.token}/crm.deal.list'
         async with aiohttp.ClientSession() as session:
-            async with session.get(
-                    url=f'{self.dep_link}{self.token}/crm.deal.list'
-                        ) as response:
+            async with session.get(url=url) as response:
                 return await response.json()
 
     async def get_deal_fields(self):
+        url = f'{self.dep_link}{self.token}/crm.deal.fields'
         async with aiohttp.ClientSession() as session:
-            async with session.get(
-                url=f'{self.dep_link}{self.token}/crm.deal.fields'
-                    ) as response:
+            async with session.get(url=url) as response:
                 return await response.json()
 
     async def get_deal(self, deal_id):
+        url = f'{self.dep_link}{self.token}/crm.deal.get'
+        params = {'id': deal_id}
         async with aiohttp.ClientSession() as session:
-            async with session.get(
-                    url=f'{self.dep_link}{self.token}/crm.deal.get',
-                    params={'id': deal_id}) as response:
+            async with session.get(url=url, params=params) as response:
                 return await response.json()
 
     async def get_break_type_key_value(self):
@@ -99,18 +97,38 @@ class BitrixMethods():
             result[item['VALUE']] = item['ID']
         return result
 
-    async def create_deal(self, json):
+    async def get_timeline_fields(self):
+        url = f'{self.dep_link}{self.token}/crm.timeline.comment.fields'
         async with aiohttp.ClientSession() as session:
-            async with session.post(
-                    url=f'{self.dep_link}{self.token}/crm.deal.add',
-                    json=json) as response:
+            async with session.get(url=url) as response:
+                return await response.json()
+
+    async def timeline_add(self, json):
+        url = f'{self.dep_link}{self.token}/crm.timeline.comment.add'
+        async with aiohttp.ClientSession() as session:
+            async with session.post(url=url, json=json) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    return data['result']
+
+    async def entity_item_add(self, json):
+        url = f'{self.dep_link}{self.token}/entity.item.add'
+        async with aiohttp.ClientSession() as session:
+            async with session.post(url=url, json=json) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    return data['result']
+
+    async def create_deal(self, json):
+        url = f'{self.dep_link}{self.token}/crm.deal.add'
+        async with aiohttp.ClientSession() as session:
+            async with session.post(url=url, json=json) as response:
                 if response.status == 200:
                     data = await response.json()
                     return data['result']
 
     async def update_deal(self, json):
+        url = f'{self.dep_link}{self.token}/crm.deal.update'
         async with aiohttp.ClientSession() as session:
-            async with session.post(
-                    url=f'{self.dep_link}{self.token}/crm.deal.update',
-                    json=json) as response:
+            async with session.post(url=url, json=json) as response:
                 return response.status

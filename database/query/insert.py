@@ -6,11 +6,15 @@ INSERT_INTO_EMPLOYEE_HIRE = f'''
         telegram_id,
         username,
         full_name,
+        last_name,
+        first_name,
         position_id,
         department_id,
         phone)
     VALUES (
         TRUE,
+        NULL,
+        NULL,
         NULL,
         NULL,
         NULL,
@@ -23,6 +27,8 @@ INSERT_INTO_EMPLOYEE = f'''
         telegram_id,
         username,
         full_name,
+        last_name,
+        first_name,
         position_id,
         department_id,
         phone)
@@ -30,6 +36,8 @@ INSERT_INTO_EMPLOYEE = f'''
         %(telegram_id)s,
         %(username)s,
         %(full_name)s,
+        %(last_name)s,
+        %(first_name)s,
         NULL,
         NULL,
         %(phone)s);

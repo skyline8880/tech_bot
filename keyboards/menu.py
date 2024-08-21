@@ -75,7 +75,7 @@ def create_menu_by_position(position_id):
             row_width=2, inline_keyboard=menu_buttons)
     menu_buttons = []
     for num, button in enumerate(RequestButtons, start=1):
-        if num > 1:
+        if num > 1 and num < 4:
             menu_buttons.append(
                 [
                     InlineKeyboardButton(

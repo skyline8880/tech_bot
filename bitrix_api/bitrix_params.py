@@ -43,6 +43,15 @@ def create_deal_json(
     }
 
 
+def asign_deal_id_on_title(deal_id, title):
+    return {
+        'ID': deal_id,
+        'fields': {
+            'TITLE': f'{deal_id}: {title}',
+        }
+    }
+
+
 def update_json(deal_id, params):
     return {
         'ID': deal_id,
@@ -51,6 +60,50 @@ def update_json(deal_id, params):
 
 
 def update_on_close_json(
+        deal_id,
+        stage_id,
+        report,
+        report_field):
+    return {
+        'ID': deal_id,
+        'fields': {
+            'STAGE_ID': stage_id,
+            report_field: report,
+        }
+    }
+
+
+def timeline_add_on_handover_json(deal_id, comment):
+    return {
+        'fields': {
+            'ENTITY_ID': deal_id,
+            'ENTITY_TYPE': 'deal',
+            'COMMENT': comment,
+        }
+    }
+
+
+def timeline_add_on_close_json(
+        deal_id,
+        photo_path,
+        comment):
+    separator = '/'
+    if sys.platform == 'win32':
+        separator = '\\'
+    photo_name = photo_path.split(separator)[-1]
+    photo_encode = base64.b64encode(
+        open(file=photo_path, mode='rb').read()).decode('utf-8')
+    return {
+        'fields': {
+            'ENTITY_ID': deal_id,
+            'ENTITY_TYPE': 'deal',
+            'COMMENT': comment,
+            'FILES': {'fileData': [photo_name, photo_encode]}
+        }
+    }
+
+
+""" def update_on_close_json(
         deal_id,
         photo_path,
         stage_id,
@@ -75,4 +128,4 @@ def update_on_close_json(
                 ]
             }
         }
-    }
+    } """

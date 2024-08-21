@@ -1,17 +1,40 @@
 import asyncio
+import base64
+
+import pandas as pd
+import psycopg
 
 from bitrix_api.bitrix_api import BitrixMethods
 from database.connection.connection import CreateConnection
 
 
 async def test():
-    bm = await BitrixMethods(4).collect_portal_data()
-    for k, v in (await bm.get_zone_key_value()).items():
-        print(k, v)
-
+    bm = await BitrixMethods(2).collect_portal_data()
+    with psycopg.connect(
+        host='192.168.100.254',
+        dbname='tech_db',
+        user='postgres',
+        password='postgres',
+        port=5438
+    ) as con:
+        sq = pd.read_sql_query(
+        sql='''
+        SELECT * FROM tech.employee ORDER BY id;
+        ''',
+        con=con,
+        )
+        sq.to_csv('employees.csv', index=False)
+    async with await CreateConnection() as con:
+        cur = con.cursor()
+        await cur.execute('''
+            SELECT * FROM tech.employee ORDER BY id;
+        ''')
+        for line in await cur.fetchall():
+            print(line)
 if __name__ == '__main__':
     asyncio.run(main=test())
-
+"""             'NAME': photo_name,
+            'DETAIL_PICTURE': [photo_name, photo_encode] """
 """ import sqlite3
 
 con = sqlite3.connect('account.db')

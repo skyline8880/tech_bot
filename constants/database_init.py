@@ -25,8 +25,8 @@ class Department(Enum):
 class Position(Enum):
     MAINADMIN = 'Главный администратор'
     ADMIN = '💻 Администратор'
-    TOPMGR = ' 🌟 Топ-сотрудник'
-    EMPLOYEE = '👨‍💼 Исполнитель'
+    TOPMGR = ' 🌟 Сотрудник клуба'
+    EMPLOYEE = '👨‍💼 Техник'
 
 
 class RequestStatus(Enum):

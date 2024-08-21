@@ -22,7 +22,9 @@ UPDATE_EMPLOYEE_DATA_BY_PHONE = f'''
     UPDATE {Tables.SCHEMA}.{Tables.EMPLOYEE}
     SET telegram_id = %(telegram_id)s,
         username = %(username)s,
-        full_name = %(full_name)s
+        full_name = %(full_name)s,
+        last_name = %(last_name)s,
+        first_name = %(first_name)s
     WHERE phone = %(phone)s;
 '''
 UPDATE_EXECUTOR_IN_CURRENT_REQUEST = f'''
@@ -42,6 +44,12 @@ UPDATE_PHOTO_AND_REPORT_IN_REQUEST = f'''
 UPDATE_STATUS_ID_IN_CURRENT_REQUEST = f'''
     UPDATE {Tables.SCHEMA}.{Tables.REQUEST}
     SET status_id = %(status_id)s
+    WHERE department_id = %(department_id)s
+    AND bitrix_deal_id = %(bitrix_deal_id)s;
+'''
+UPDATE_REPORT_IN_CURRENT_REQUEST = f'''
+    UPDATE {Tables.SCHEMA}.{Tables.REQUEST}
+    SET report = %(report)s
     WHERE department_id = %(department_id)s
     AND bitrix_deal_id = %(bitrix_deal_id)s;
 '''
