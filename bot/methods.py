@@ -19,8 +19,7 @@ from core.secrets import get_path
 from database.database import Database
 from keyboards.menu import (create_current_request_menu,
                             create_menu_by_position, create_request_list_menu,
-                            create_request_menu, current_request_keyboard,
-                            menu_keyboard)
+                            create_request_menu, current_request_keyboard)
 from messages.intro import auth_employee_pos_and_dep_message
 from messages.request import (bitrix_creat_deal_error_message,
                               done_request_message, new_request_message,
@@ -214,24 +213,18 @@ class TechBot(Bot):
             user_data = await db.get_employee_by_sign(employee_sign=chat_id)
             is_creator = False
             is_executor = False
-            # if current_deal[5] == user_data[1]:
-            # is_creator = True
-            if current_deal[18] == user_data[1]:
+            if user_data[4] == 4:
                 is_executor = True
             photo_data = current_deal[15]
-            actual_keyboard = create_current_request_menu(
-                position_id=user_data[4],
-                request_status_id=current_deal[3],
-                is_creator=is_creator,
-                is_executor=is_executor)
-            if current_deal[3] == 5:
-                # photo_data = current_deal[26]
-                actual_keyboard = menu_keyboard
             await self.send_photo(
                 chat_id=chat_id,
                 photo=photo_data,
                 caption=request_detail_message(current_deal),
-                reply_markup=actual_keyboard)
+                reply_markup=create_current_request_menu(
+                    position_id=user_data[4],
+                    request_status_id=current_deal[3],
+                    is_creator=is_creator,
+                    is_executor=is_executor))
             return True
 
     async def open_any_request_list(self, query: CallbackQuery, page: int):
