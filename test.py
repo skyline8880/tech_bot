@@ -17,21 +17,21 @@ async def test():
         password='postgres',
         port=5438
     ) as con:
-        sq = pd.read_sql_query(
+        cur = con.cursor()
+"""         sq = pd.read_sql_query(
         sql='''
         SELECT * FROM tech.employee ORDER BY id;
         ''',
         con=con,
         )
         print(sq)
-        #sq.to_csv('employees.csv', index=False)
     async with await CreateConnection() as con:
         cur = con.cursor()
         await cur.execute('''
             SELECT * FROM tech.employee ORDER BY id;
         ''')
         for line in await cur.fetchall():
-            print(line)
+            print(line) """
 if __name__ == '__main__':
     asyncio.run(main=test())
 """             'NAME': photo_name,

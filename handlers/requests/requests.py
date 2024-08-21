@@ -361,6 +361,7 @@ async def get_request_handover_description(
     deal_id = data['deal_id']
     report = message.text
     db = Database()
+    user_data = await db.get_employee_by_sign(message.from_user.id)
     bm = await BitrixMethods(
         department_sign=department_id).collect_portal_data()
     json = update_json(
@@ -373,7 +374,8 @@ async def get_request_handover_description(
     )
     timeline_json = timeline_add_on_handover_json(
         deal_id=deal_id,
-        comment=report
+        comment=report,
+        user=f'{user_data[9]} {user_data[10]}'
     )
     status = await bm.update_deal(json=json)
     await bm.timeline_add(json=timeline_json)

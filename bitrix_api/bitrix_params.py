@@ -73,12 +73,12 @@ def update_on_close_json(
     }
 
 
-def timeline_add_on_handover_json(deal_id, comment):
+def timeline_add_on_handover_json(deal_id, comment, user):
     return {
         'fields': {
             'ENTITY_ID': deal_id,
             'ENTITY_TYPE': 'deal',
-            'COMMENT': comment,
+            'COMMENT': f'{user}: {comment}',
         }
     }
 
@@ -86,7 +86,8 @@ def timeline_add_on_handover_json(deal_id, comment):
 def timeline_add_on_close_json(
         deal_id,
         photo_path,
-        comment):
+        comment,
+        user):
     separator = '/'
     if sys.platform == 'win32':
         separator = '\\'
@@ -97,7 +98,7 @@ def timeline_add_on_close_json(
         'fields': {
             'ENTITY_ID': deal_id,
             'ENTITY_TYPE': 'deal',
-            'COMMENT': comment,
+            'COMMENT': f'{user}: {comment}',
             'FILES': {'fileData': [photo_name, photo_encode]}
         }
     }

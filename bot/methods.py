@@ -289,6 +289,7 @@ class TechBot(Bot):
         await state.update_data(report=message.text)
         data = await state.get_data()
         db = Database()
+        user_data = await db.get_employee_by_sign(message.from_user.id)
         bm = await BitrixMethods(
             department_sign=data['department_id']).collect_portal_data()
         file_path = await self.generate_deal_photo(
@@ -303,7 +304,8 @@ class TechBot(Bot):
         timeline_json = timeline_add_on_close_json(
             deal_id=data['deal_id'],
             photo_path=file_path,
-            comment=message.text)
+            comment=message.text,
+            user=f'{user_data[9]} {user_data[10]}')
         action_sender = ChatActionSender(
             bot=self,
             chat_id=message.from_user.id,
@@ -326,7 +328,6 @@ class TechBot(Bot):
                 status_id=5,
                 department_id=data['department_id'],
                 bitrix_deal_id=data['deal_id'])
-            user_data = await db.get_employee_by_sign(message.from_user.id)
             current_request = await db.get_current_request_of_department(
                 department_id=data['department_id'],
                 bitrix_deal_id=data['deal_id'])
