@@ -23,7 +23,8 @@ async def test():
         ''',
         con=con,
         )
-        sq.to_csv('employees.csv', index=False)
+        print(sq)
+        #sq.to_csv('employees.csv', index=False)
     async with await CreateConnection() as con:
         cur = con.cursor()
         await cur.execute('''
