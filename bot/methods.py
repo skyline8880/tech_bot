@@ -102,12 +102,14 @@ class TechBot(Bot):
             zone_data = await bm.get_zone_key_value()
             file_path = await self.generate_deal_photo(
                 file_id=data['creator_photo'])
+            department_id = data['department_id']
+            title = data['short_description']
             json = create_deal_json(
-                title=data['short_description'],
+                title=title,
                 assigned_by=bm.tech,
                 category_id=bm.category_id,
                 stage_id=f'C{bm.category_id}:{bm.new}',
-                short_description=data['short_description'],
+                short_description=title,
                 detailed_description=data['detailed_description'],
                 break_type=break_type_data[
                     ' '.join(data['break_type'].split()[1:])],
@@ -120,7 +122,9 @@ class TechBot(Bot):
                 photo_field=bm.photo)
             deal_id = await bm.create_deal(json=json)
             update_title_json = asign_deal_id_on_title(
-                deal_id=deal_id, title=data['short_description'])
+                department_id=department_id,
+                deal_id=deal_id,
+                title=title)
             await bm.update_deal(json=update_title_json)
             if deal_id is None:
                 await message.answer(text=bitrix_creat_deal_error_message())
@@ -142,8 +146,7 @@ class TechBot(Bot):
                 start_date=current_deal[28],
                 deal_id=current_deal[0],
                 department_id=current_deal[1])
-            department_id = data['department_id']
-            title = data['short_description']
+
             await self.clear_messages(
                 message=message, state=state, finish=True)
             user_data = await db.get_employee_by_sign(message.from_user.id)

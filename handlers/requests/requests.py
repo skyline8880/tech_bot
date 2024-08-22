@@ -239,6 +239,7 @@ async def get_request_sign(message: Message, state: FSMContext) -> None:
         current_deal = await db.get_current_request_of_department(
             department_id=department_id,
             bitrix_deal_id=deal_id)
+        await message.delete()
         if current_deal is None:
             await message.answer(text=no_request_message())
             return

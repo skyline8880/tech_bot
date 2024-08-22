@@ -43,11 +43,11 @@ def create_deal_json(
     }
 
 
-def asign_deal_id_on_title(deal_id, title):
+def asign_deal_id_on_title(department_id, deal_id, title):
     return {
         'ID': deal_id,
         'fields': {
-            'TITLE': f'{deal_id}: {title}',
+            'TITLE': f'{department_id}/{deal_id}: {title}',
         }
     }
 
