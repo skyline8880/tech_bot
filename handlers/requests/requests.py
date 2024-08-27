@@ -97,10 +97,11 @@ async def choose_floor_action(
         query: CallbackQuery, state: FSMContext) -> None:
     current_query_data = query.data.split(':')[-1]
     await query.answer(current_query_data)
-    await query.message.delete()
     data = await state.get_data()
     await state.update_data(floor=current_query_data)
     await state.set_state(CreatorRequest.zone)
+    await bot.clear_messages(
+        message=query.message, state=state, finish=False)
     await query.message.answer(
         text=request_zone_message(),
         reply_markup=await create_zone_menu(
@@ -296,7 +297,6 @@ async def action_to_request(query: CallbackQuery, state: FSMContext) -> None:
     request_data = query.message.caption.split('\n')
     db = Database()
     department_id, deal_id = request_data[0].split(':')[-1].strip().split('/')
-    await query.message.delete()
     """     department_data = await db.get_department(
             department_sign=request_data[2].split(':')[-1].strip())
         department_id = department_data[0] """
@@ -309,8 +309,8 @@ async def action_to_request(query: CallbackQuery, state: FSMContext) -> None:
             status_id=2,
             department_id=department_id,
             bitrix_deal_id=deal_id)
-        await query.message.delete()
         user_data = await db.get_employee_by_sign(query.from_user.id)
+        await query.message.delete()
         await query.message.answer(
             text=auth_employee_pos_and_dep_message(
                 position=user_data[5], department=user_data[7],
@@ -323,6 +323,7 @@ async def action_to_request(query: CallbackQuery, state: FSMContext) -> None:
         await state.update_data(start_message=query.message.message_id + 1)
         await state.update_data(department_id=department_id)
         await state.update_data(deal_id=deal_id)
+        await query.message.delete()
         await state.set_state(HandoverRequest.comment)
         await query.message.answer(
             text=handover_description_message(),
@@ -347,6 +348,7 @@ async def action_to_request(query: CallbackQuery, state: FSMContext) -> None:
             status_id=4,
             department_id=department_id,
             bitrix_deal_id=deal_id)
+    await query.message.delete()
     await bot.open_current_request(
         query=query,
         department_id=department_id,

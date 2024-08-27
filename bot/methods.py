@@ -53,8 +53,10 @@ class TechBot(Bot):
             finish: bool
             ) -> None:
         chat_id = message.chat.id
+        message_object = message
         if isinstance(message, CallbackQuery):
             current_message_id = message.message.message_id
+            message_object = message.message
         else:
             current_message_id = message.message_id
         try:
@@ -69,9 +71,7 @@ class TechBot(Bot):
                     pass
         except Exception:
             try:
-                await self.delete_message(
-                    chat_id=chat_id,
-                    message_id=current_message_id)
+                await message_object.delete()
             except Exception:
                 pass
         if finish:
@@ -146,7 +146,6 @@ class TechBot(Bot):
                 start_date=current_deal[28],
                 deal_id=current_deal[0],
                 department_id=current_deal[1])
-
             await self.clear_messages(
                 message=message, state=state, finish=True)
             user_data = await db.get_employee_by_sign(message.from_user.id)
