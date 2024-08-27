@@ -402,14 +402,16 @@ class TechBot(Bot):
         scheduler_24_hours.add_job(
             func=self.track_24_hours,
             trigger='date',
-            run_date=start_date + dt.timedelta(hours=24),
+            # next_run_time=start_date + dt.timedelta(seconds=10),
+            next_run_time=start_date + dt.timedelta(hours=24),
             kwargs={'deal_id': deal_id, 'department_id': department_id}
         )
 
         scheduler_72_hours.add_job(
             func=self.track_72_hours,
             trigger='date',
-            run_date=start_date + dt.timedelta(hours=72),
+            # next_run_time=start_date + dt.timedelta(seconds=20),
+            next_run_time=start_date + dt.timedelta(hours=72),
             kwargs={'deal_id': deal_id, 'department_id': department_id}
         )
         scheduler_24_hours.start()
