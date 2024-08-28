@@ -8,11 +8,10 @@ from aiogram.enums.parse_mode import ParseMode
 from aiogram.fsm.context import FSMContext
 from aiogram.types import BotCommand, CallbackQuery, Message
 from aiogram.utils.chat_action import ChatActionSender
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 from bitrix_api.bitrix_api import BitrixMethods
 from bitrix_api.bitrix_params import (asign_deal_id_on_title, create_deal_json,
-                                      timeline_add_on_close_json, update_json,
+                                      timeline_add_on_close_json,
                                       update_on_close_json)
 from constants.buttons_init import CreatorButtons
 from core.secrets import get_path
@@ -25,6 +24,8 @@ from messages.request import (bitrix_creat_deal_error_message,
                               done_request_message, new_request_message,
                               request_action_message, request_detail_message,
                               request_list_message)
+
+# from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 
 class TechBot(Bot):
@@ -142,10 +143,16 @@ class TechBot(Bot):
             current_deal = await db.get_current_request_of_department(
                 department_id=data['department_id'],
                 bitrix_deal_id=deal_id)
-            await self.request_timetracker(
-                start_date=current_deal[28],
-                deal_id=current_deal[0],
-                department_id=current_deal[1])
+            status = await bm.send_to_scheduler(
+                deal_id=deal_id,
+                start_date=dt.datetime.strftime(
+                    current_deal[28], '%Y-%m-%d %H:%M:%S'))
+            if status != 200:
+                print('Ошибка передачи информации планировщику')
+            """             await self.request_timetracker(
+                            start_date=current_deal[28],
+                            deal_id=current_deal[0],
+                            department_id=current_deal[1]) """
             await self.clear_messages(
                 message=message, state=state, finish=True)
             user_data = await db.get_employee_by_sign(message.from_user.id)
@@ -352,7 +359,8 @@ class TechBot(Bot):
                         action=CreatorButtons.REQUEST.value),
                     reply_markup=create_request_menu())
 
-    async def track_24_hours(self, deal_id, department_id):
+
+"""     async def track_24_hours(self, deal_id, department_id):
         db = Database()
         current_deal = await db.get_current_request_of_department(
             department_id=department_id,
@@ -415,4 +423,4 @@ class TechBot(Bot):
             kwargs={'deal_id': deal_id, 'department_id': department_id}
         )
         scheduler_24_hours.start()
-        scheduler_72_hours.start()
+        scheduler_72_hours.start() """

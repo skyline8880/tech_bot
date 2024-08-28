@@ -2,7 +2,7 @@ from typing import Union
 
 import aiohttp
 
-from core.secrets import BitrixSecrets
+from core.secrets import BitrixSecrets, DatabaseSecrets
 from database.database import Database
 
 
@@ -59,6 +59,18 @@ class BitrixMethods():
                 ) = await self.db.get_bitrix_account_by_department_id(
                 self.dep_id)
         return self
+
+    async def send_to_scheduler(self, deal_id, start_date):
+        json = {
+                'token': self.token,
+                'department_id': self.dep_id,
+                'deal_id': deal_id,
+                'start_date': start_date
+            }
+        url = f'http://{DatabaseSecrets.PGHOST}:8887'
+        async with aiohttp.ClientSession() as session:
+            async with session.post(url=url, json=json) as response:
+                return response.status
 
     async def get_bitrix_deal_list(self):
         url = f'{self.dep_link}{self.token}/crm.deal.list'
