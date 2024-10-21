@@ -118,11 +118,11 @@ def request_detail_message(request_data):
             markdown.markdown_decoration.quote('Статус:'),
             f'{markdown.bold(request_data[4])}'),
         # markdown.text(
-            # markdown.markdown_decoration.quote('Постановщик:'),
-            # f'{markdown.bold(creator_fullname)}'),
+        # markdown.markdown_decoration.quote('Постановщик:'),
+        # f'{markdown.bold(creator_fullname)}'),
         # markdown.text(
-            # markdown.markdown_decoration.quote('Телефон:'),
-            # f'{markdown.bold(request_data[8])}'),
+        # markdown.markdown_decoration.quote('Телефон:'),
+        # f'{markdown.bold(request_data[8])}'),
         markdown.text(
             markdown.markdown_decoration.quote('Зона:'),
             f'{markdown.bold(request_data[13])}'),
