@@ -54,10 +54,10 @@ def request_report_text_message():
 
 def request_short_desc_message():
     return markdown.text(
-        markdown.markdown_decoration.quote('Введите краткое описание'),
-        markdown.markdown_decoration.quote('неисправности.'),
-        markdown.markdown_decoration.quote('Оно будет отображаться'),
-        markdown.markdown_decoration.quote('как название заявки.'),
+        markdown.markdown_decoration.quote('Введите заголовок задачи'),
+        # markdown.markdown_decoration.quote('неисправности.'),
+        # markdown.markdown_decoration.quote('Оно будет отображаться'),
+        # markdown.markdown_decoration.quote('как название заявки.'),
         sep='\n')
 
 
@@ -101,11 +101,11 @@ def request_detail_message(request_data):
     if report is None:
         report = 'Работа не проведена'
     deal_id = f'{request_data[1]}/{request_data[0]}'
-    creator_fullname = f'{request_data[29]} {request_data[30]}'
+    # creator_fullname = f'{request_data[29]} {request_data[30]}'
     time = dt.datetime.strftime(request_data[28], "%H:%M")
     return markdown.text(
         markdown.text(
-            markdown.markdown_decoration.quote('ID сделки:'),
+            markdown.markdown_decoration.quote('Номер задачи:'),
             f'{markdown.bold(deal_id)}'),
         markdown.text(
             markdown.markdown_decoration.quote('Дата создания:'),
@@ -117,12 +117,12 @@ def request_detail_message(request_data):
         markdown.text(
             markdown.markdown_decoration.quote('Статус:'),
             f'{markdown.bold(request_data[4])}'),
-        markdown.text(
-            markdown.markdown_decoration.quote('Постановщик:'),
-            f'{markdown.bold(creator_fullname)}'),
-        markdown.text(
-            markdown.markdown_decoration.quote('Телефон:'),
-            f'{markdown.bold(request_data[8])}'),
+        # markdown.text(
+            # markdown.markdown_decoration.quote('Постановщик:'),
+            # f'{markdown.bold(creator_fullname)}'),
+        # markdown.text(
+            # markdown.markdown_decoration.quote('Телефон:'),
+            # f'{markdown.bold(request_data[8])}'),
         markdown.text(
             markdown.markdown_decoration.quote('Зона:'),
             f'{markdown.bold(request_data[13])}'),
@@ -130,7 +130,7 @@ def request_detail_message(request_data):
             markdown.markdown_decoration.quote('Вид неисправности:'),
             f'{markdown.bold(request_data[14])}'),
         markdown.text(
-            markdown.markdown_decoration.quote('Краткое описание:'),
+            markdown.markdown_decoration.quote('Заголовок задачи:'),
             f'{markdown.bold(request_data[16])}'),
         markdown.text(
             markdown.markdown_decoration.quote('Детальное описание:'),
