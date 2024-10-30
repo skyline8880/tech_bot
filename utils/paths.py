@@ -1,8 +1,5 @@
 import os
 
-# Путь к текущей директории проекта
-current_directory = os.getcwd()
-
 
 def set_path(filename):
     return os.path.join(
