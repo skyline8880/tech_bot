@@ -105,3 +105,15 @@ class CreateZoneKeyboard:
 
     async def get_floor_area_dict(self, floor):
         return self.AREAS[self.department_id][floor]
+
+
+class ReportsRequest(Enum):
+    ALL = '📒 Все заявки'
+    ONTECH = '📒 Завершенные'
+    ACTIVE = '📒 Активные'
+
+
+class DateReports(Enum):
+    PREVIOUS = '📅 Предыдущий месяц'
+    CURRENT = '📅 Текущиий месяц'
+    PERIOD = '📅 Выбрать период'

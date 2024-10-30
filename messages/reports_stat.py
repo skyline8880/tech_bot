@@ -1,3 +1,4 @@
+from aiogram.utils import markdown
 from aiogram.utils.formatting import (Bold, as_key_value, as_list,
                                       as_marked_section)
 
@@ -32,3 +33,32 @@ def statistic_message(data):
                     marker='      ▪️'))
     return as_list(
         *data_array, sep='\n\n').as_markdown()
+
+
+def add_reports_period_message():
+    return markdown.text(
+        markdown.text(
+            markdown.markdown_decoration.quote(
+                'Введите период в формате: ')),
+        markdown.text(
+            markdown.markdown_decoration.quote(
+                'ДД.ММ.ГГГГ-ДД.ММ.ГГГГ')),
+        sep='\n')
+
+
+def period_reports_nodata(begin, end):
+    return markdown.text(
+        markdown.text(
+            markdown.markdown_decoration.quote(
+                f"За период: {begin} - {end}")),
+        markdown.text(
+            markdown.markdown_decoration.quote(
+                "Нет данных!")),
+        sep='\n')
+
+
+def period_reports_data(begin, end):
+    return markdown.text(
+        markdown.markdown_decoration.quote(f'За период: {begin} - {end}'),
+        markdown.markdown_decoration.quote("Отчет готов!"),
+        sep='\n')

@@ -4,6 +4,7 @@ extend-ignore =
     C901
 exclude =
     venv,
+    .vteach,
     .git,
     __pycache__,
     docs/source/conf.py,
