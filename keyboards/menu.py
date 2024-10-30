@@ -3,21 +3,22 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from bitrix_api.bitrix_api import BitrixMethods
 from constants.buttons_init import (ActionButtons, CreateZoneKeyboard,
                                     CreatorButtons,
-                                    CurrentRequestActionButtons,
-                                    RequestButtons)
+                                    CurrentRequestActionButtons, DateReports,
+                                    ReportsRequest, RequestButtons)
 from constants.database_init import Department, Position
 from filters.callback_filters import (BreakTypeCallbackData,
                                       CurrentRequestActionCallbackData,
-                                      DepartmentCallbackData,
+                                      DateReportsCD, DepartmentCallbackData,
                                       FloorCallbackData,
                                       GetCurrentRequestCallbackData,
-                                      PositionCallbackData,
+                                      PositionCallbackData, ReportsRequestCD,
                                       RequestActionCallbackData,
                                       RequestNavigationCallbackData,
                                       RequestPageInfoCallbackData,
                                       UserActionsCallbackData,
                                       UserCreatorCallbackData,
                                       ZoneCallbackData)
+
 
 cancel_button = [
     InlineKeyboardButton(
@@ -410,3 +411,62 @@ def current_request_keyboard(department_id, deal_id, title):
     ]
     return InlineKeyboardMarkup(
         row_width=1, inline_keyboard=[request_button])
+
+
+def reports_keyboard():  # Меню отчетов
+    buttons = []
+
+    for butt in ReportsRequest:
+        buttons.append(
+            [
+                InlineKeyboardButton(
+                    text=butt.value,
+                    callback_data=ReportsRequestCD(report_req=butt).pack()
+                )
+            ]
+        )
+    buttons.append(
+        [
+            InlineKeyboardButton(
+                text=ActionButtons.MENU.value,
+                callback_data=UserActionsCallbackData(
+                    action=ActionButtons.MENU).pack())
+        ]
+    )
+    return InlineKeyboardMarkup(
+        row_width=1, inline_keyboard=buttons)
+
+
+def date_reports_keyboard():  # Меню выбора периода
+    buttons = []
+
+    for butt in DateReports:
+        buttons.append([
+            InlineKeyboardButton(
+                text=butt.value,
+                callback_data=DateReportsCD(dt_rep=butt).pack())
+            ]
+        )
+    buttons.append(
+        [
+            InlineKeyboardButton(
+                text=CreatorButtons.REPORT.value,
+                callback_data=UserCreatorCallbackData(
+                    creator=CreatorButtons.REPORT).pack()
+                    )
+        ]
+    )
+
+    return InlineKeyboardMarkup(inline_keyboard=buttons)
+
+
+def back_to_reports():
+    menu_button = [
+        InlineKeyboardButton(
+                text=CreatorButtons.REPORT.value,
+                callback_data=UserCreatorCallbackData(
+                    creator=CreatorButtons.REPORT).pack()
+                    )
+    ]
+    return InlineKeyboardMarkup(
+        row_width=2, inline_keyboard=[menu_button])

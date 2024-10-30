@@ -1,3 +1,4 @@
+import pandas as pd
 import psycopg
 
 from database.connection.connection import CreateConnection
@@ -14,9 +15,10 @@ from database.query.select import (
     SELECT_DEPARTMENT_ACTIVE_REQUEST_LIST,
     SELECT_DEPARTMENT_REQUESTS_BY_STATUS, SELECT_DEPERTMENT_BY_SIGN,
     SELECT_EMPLOYEE_BY_SIGN, SELECT_EXECUTOR_OWN_ACTIVE_REQUEST_LIST,
-    SELECT_EXECUTORS_BY_DEPRTMENT_ID, SELECT_POSITION_BY_SIGN, SELECT_REQUESTS,
-    SELECT_REQUESTS_BY_DEPARTMENT, SELECT_REQUESTS_BY_STATUS,
-    SELECT_STATISTIC_OF_DEPARTMENTS, SELECT_STATUS_BY_SIGN)
+    SELECT_EXECUTORS_BY_DEPRTMENT_ID, SELECT_POSITION_BY_SIGN,
+    SELECT_REPORT_REQUEST_TECH, SELECT_REQUESTS, SELECT_REQUESTS_BY_DEPARTMENT,
+    SELECT_REQUESTS_BY_STATUS, SELECT_STATISTIC_OF_DEPARTMENTS,
+    SELECT_STATUS_BY_SIGN)
 from database.query.update import (UPDATE_CREATOR_IN_REQUESTS,
                                    UPDATE_EMPLOYEE_ACTIVITY,
                                    UPDATE_EMPLOYEE_DATA_BY_PHONE,
@@ -27,6 +29,7 @@ from database.query.update import (UPDATE_CREATOR_IN_REQUESTS,
                                    UPDATE_POSITION_ID_DEPARTMENT_ID_EMPLOYEE,
                                    UPDATE_REPORT_IN_CURRENT_REQUEST,
                                    UPDATE_STATUS_ID_IN_CURRENT_REQUEST)
+from utils.paths import set_path
 
 
 class Database:
@@ -435,3 +438,74 @@ class Database:
                 'bitrix_deal_id': bitrix_deal_id})
         await connection.commit()
         await connection.close()
+
+    # запрос выборки из бд
+    async def select_request_query(self, begin, end, status_id, department_id):
+        connection = await CreateConnection()
+
+        cursor = connection.cursor()
+        query = SELECT_REPORT_REQUEST_TECH
+        # print(query)
+        await cursor.execute(
+            query=query,
+            params={
+                'begin': str(begin),
+                'end': str(end),
+                'status_id' : status_id,
+                'department_id' : department_id
+                })
+
+        rows = await cursor.fetchall()
+        # print(rows)
+        await connection.commit()
+        await connection.close()
+        return rows
+
+    async def report_request(self, result, status_name, begin, end):
+        if result is None:
+            print("Ошибка: Нет данных для создания отчета.")
+            return None, None
+
+        columnnames = ['id', 'req_id', 'req_data', 'req_time',
+                       'fio_create', 'Phone', 'creator_position',
+                       'dep_name', 'zone', 'break_type',
+                       'short_description', 'status_name',
+                       'fio_executor',
+                       'phone', 'executor_position']
+
+        df = pd.DataFrame(result, columns=columnnames)
+
+        if df.empty:
+            print("Пустой DataFrame. Нет данных для отчета.")
+            return
+
+        savedftoexcel = df[['id', 'req_id', 'req_data', 'req_time',
+                            'fio_create', 'Phone', 'creator_position',
+                            'dep_name', 'zone', 'break_type',
+                            'short_description', 'status_name',
+                            'fio_executor', 'phone',
+                            'executor_position']].copy()
+
+        savedftoexcel.columns = ['№ Клуба', '№ заявки', 'Дата заявки',
+                                 'Время заявки',
+                                 'Заказчик', 'Телефон', 'Роль',
+                                 'Клуб', 'Зона', 'Тип',
+                                 'Описание', 'Статус заявки',
+                                 'Исполнитель',
+                                 'Телефон', 'Роль']
+
+        filename = f'Заявки_{status_name}_{begin}-{end}.xlsx'
+
+        outputpath = set_path(filename)
+
+        writer = pd.ExcelWriter(outputpath, engine='xlsxwriter')
+        savedftoexcel.to_excel(writer, index=False,
+                               sheet_name='Заявки')
+
+        # worksheet = writer.sheets['Заявки']
+        for sheet_name in writer.sheets:
+            writer.sheets[sheet_name].set_column('A:IQ', 20)
+
+        writer.close()
+
+        return outputpath, filename

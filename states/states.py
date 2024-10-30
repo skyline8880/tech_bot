@@ -55,3 +55,8 @@ class HandoverRequest(StatesGroup):
     department_id = State()
     deal_id = State()
     comment = State()
+
+
+class DatePeriod(StatesGroup):
+    start_message = State()
+    period = State()

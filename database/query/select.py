@@ -456,3 +456,55 @@ SELECT_STATISTIC_OF_DEPARTMENTS = f'''
     LEFT JOIN headtech_work AS head ON head.department_id = dep.id
     LEFT JOIN done AS done ON done.department_id = dep.id
 '''
+SELECT_REPORT_REQUEST_TECH = '''
+    SELECT
+        dep.id, request.bitrix_deal_id AS req_id,
+        TO_CHAR(request.create_date, 'YYYY-MM-DD') AS req_date,
+        TO_CHAR(request.create_date, 'HH24:MI') AS req_time,
+        CONCAT(creator.first_name, ' ', creator.last_name)
+        AS FIO_create, creator.phone,
+        pos_creator.name AS creator_position,
+        dep."name" AS dep_name,
+        request.zone,
+        request.break_type,
+        request.short_description,
+        request_status.name AS status_name,
+        CONCAT(executor.first_name, ' ', executor.last_name)
+        AS FIO_executor, executor.phone,
+        pos_executor.name AS executor_position
+    FROM
+        tech.request
+    LEFT JOIN
+        tech.department AS dep ON request.department_id = dep.id
+    LEFT JOIN
+        tech.employee ON request.creator_telegram_id = employee.telegram_id
+    LEFT JOIN
+        tech.employee AS executor ON
+        request.executor_telegram_id = executor.telegram_id
+    LEFT JOIN
+        tech.employee AS creator ON
+        request.creator_telegram_id = creator.telegram_id
+    LEFT JOIN
+        tech.position AS pos_creator ON creator.position_id = pos_creator.id
+    LEFT JOIN
+        tech.position AS pos_executor ON
+        executor.position_id = pos_executor.id
+    LEFT JOIN
+        tech.request_status ON request.status_id = request_status.id
+    WHERE tech.request.create_date BETWEEN %(begin)s AND %(end)s
+    AND (
+        (
+            %(status_id)s = 0
+            OR
+            (%(status_id)s = 1 AND status_id <> 5)
+        )
+        OR
+        (
+            %(status_id)s = 5
+            AND status_id = 5
+        )
+        )
+        AND
+        (%(department_id)s = 0
+        OR request.department_id = %(department_id)s);
+'''

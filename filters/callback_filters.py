@@ -1,9 +1,9 @@
 from aiogram.filters.callback_data import CallbackData
 
 from constants.buttons_init import (ActionButtons, CreatorButtons,
-                                    CurrentRequestActionButtons,
+                                    CurrentRequestActionButtons, DateReports,
                                     DepartmentFloor, ExecutorButtons,
-                                    RequestButtons)
+                                    ReportsRequest, RequestButtons)
 from constants.database_init import Position
 
 
@@ -59,3 +59,11 @@ class RequestPageInfoCallbackData(CallbackData, prefix='page_is'):
 
 class FloorCallbackData(CallbackData, prefix='floor_is'):
     floor: DepartmentFloor
+
+
+class ReportsRequestCD(CallbackData, prefix='report_req'):
+    report_req: ReportsRequest
+
+
+class DateReportsCD(CallbackData, prefix='dt_rep'):
+    dt_rep: DateReports
