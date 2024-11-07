@@ -128,8 +128,6 @@ class Database:
             department_id,
             status_id,
             creator_telegram_id,
-            zone,
-            break_type,
             photo,
             short_description,
             detailed_description
@@ -143,8 +141,6 @@ class Database:
                 'department_id': int(department_id),
                 'status_id': int(status_id),
                 'creator_telegram_id': int(creator_telegram_id),
-                'zone': zone,
-                'break_type': break_type,
                 'creator_photo': photo,
                 'short_description': short_description,
                 'detailed_description': detailed_description})
@@ -445,7 +441,6 @@ class Database:
 
         cursor = connection.cursor()
         query = SELECT_REPORT_REQUEST_TECH
-        # print(query)
         await cursor.execute(
             query=query,
             params={
@@ -456,7 +451,6 @@ class Database:
                 })
 
         rows = await cursor.fetchall()
-        # print(rows)
         await connection.commit()
         await connection.close()
         return rows
@@ -468,8 +462,7 @@ class Database:
 
         columnnames = ['id', 'req_id', 'req_data', 'req_time',
                        'fio_create', 'Phone', 'creator_position',
-                       'dep_name', 'zone', 'break_type',
-                       'short_description', 'status_name',
+                       'dep_name', 'short_description', 'status_name',
                        'fio_executor',
                        'phone', 'executor_position']
 
@@ -481,20 +474,19 @@ class Database:
 
         savedftoexcel = df[['id', 'req_id', 'req_data', 'req_time',
                             'fio_create', 'Phone', 'creator_position',
-                            'dep_name', 'zone', 'break_type',
-                            'short_description', 'status_name',
+                            'dep_name', 'short_description',
+                            'status_name',
                             'fio_executor', 'phone',
                             'executor_position']].copy()
 
         savedftoexcel.columns = ['№ Клуба', '№ заявки', 'Дата заявки',
                                  'Время заявки',
                                  'Заказчик', 'Телефон', 'Роль',
-                                 'Клуб', 'Зона', 'Тип',
-                                 'Описание', 'Статус заявки',
+                                 'Клуб', 'Заголовок', 'Статус заявки',
                                  'Исполнитель',
                                  'Телефон', 'Роль']
 
-        filename = f'Заявки_{status_name}_{begin}-{end}.xlsx'
+        filename = f'{status_name}_{begin}-{end}.xlsx'
 
         outputpath = set_path(filename)
 
@@ -502,7 +494,6 @@ class Database:
         savedftoexcel.to_excel(writer, index=False,
                                sheet_name='Заявки')
 
-        # worksheet = writer.sheets['Заявки']
         for sheet_name in writer.sheets:
             writer.sheets[sheet_name].set_column('A:IQ', 20)
 

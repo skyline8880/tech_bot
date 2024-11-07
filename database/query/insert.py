@@ -48,8 +48,6 @@ INSERT_INTO_REQUEST = f'''
         department_id,
         status_id,
         creator_telegram_id,
-        zone,
-        break_type,
         creator_photo,
         short_description,
         detailed_description)
@@ -58,8 +56,6 @@ INSERT_INTO_REQUEST = f'''
         %(department_id)s,
         %(status_id)s,
         %(creator_telegram_id)s,
-        %(zone)s,
-        %(break_type)s,
         %(creator_photo)s,
         %(short_description)s,
         %(detailed_description)s);

@@ -92,9 +92,9 @@ def bitrix_creat_deal_error_message():
 
 
 def request_detail_message(request_data):
-    executor = request_data[21]
-    executor_fullname = f'{request_data[31]} {request_data[32]}'
-    report = request_data[27]
+    executor = request_data[19]
+    executor_fullname = f'{request_data[27]} {request_data[28]}'
+    report = request_data[25]
     if executor is None:
         executor = ' - '
         executor_fullname = 'Не принят в работу'
@@ -102,14 +102,14 @@ def request_detail_message(request_data):
         report = 'Работа не проведена'
     deal_id = f'{request_data[1]}/{request_data[0]}'
     # creator_fullname = f'{request_data[29]} {request_data[30]}'
-    time = dt.datetime.strftime(request_data[28], "%H:%M")
+    time = dt.datetime.strftime(request_data[26], "%H:%M")
     return markdown.text(
         markdown.text(
             markdown.markdown_decoration.quote('Номер задачи:'),
             f'{markdown.bold(deal_id)}'),
         markdown.text(
             markdown.markdown_decoration.quote('Дата создания:'),
-            f'{markdown.bold(request_data[28].date())}',
+            f'{markdown.bold(request_data[26].date())}',
             f'{markdown.bold(time)}'),
         markdown.text(
             markdown.markdown_decoration.quote('Отделение:'),
@@ -123,18 +123,18 @@ def request_detail_message(request_data):
         # markdown.text(
         # markdown.markdown_decoration.quote('Телефон:'),
         # f'{markdown.bold(request_data[8])}'),
-        markdown.text(
-            markdown.markdown_decoration.quote('Зона:'),
-            f'{markdown.bold(request_data[13])}'),
-        markdown.text(
-            markdown.markdown_decoration.quote('Вид неисправности:'),
-            f'{markdown.bold(request_data[14])}'),
+        # markdown.text(
+        # markdown.markdown_decoration.quote('Зона:'),
+        # f'{markdown.bold(request_data[13])}'),
+        # markdown.text(
+        # markdown.markdown_decoration.quote('Вид неисправности:'),
+        # f'{markdown.bold(request_data[14])}'),
         markdown.text(
             markdown.markdown_decoration.quote('Заголовок задачи:'),
-            f'{markdown.bold(request_data[16])}'),
+            f'{markdown.bold(request_data[14])}'),
         markdown.text(
             markdown.markdown_decoration.quote('Детальное описание:'),
-            f'{markdown.bold(request_data[17])}'),
+            f'{markdown.bold(request_data[15])}'),
         markdown.text(
             markdown.markdown_decoration.quote('Исполнитель:'),
             f'{markdown.bold(executor_fullname)}'),

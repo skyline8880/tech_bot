@@ -1,4 +1,3 @@
-import datetime as dt
 from typing import Union
 
 from aiogram import Bot
@@ -99,8 +98,6 @@ class TechBot(Bot):
         async with action_sender:
             bm = await BitrixMethods(
                 department_sign=data['department_id']).collect_portal_data()
-            break_type_data = await bm.get_break_type_key_value()
-            zone_data = await bm.get_zone_key_value()
             file_path = await self.generate_deal_photo(
                 file_id=data['creator_photo'])
             department_id = data['department_id']
@@ -112,14 +109,11 @@ class TechBot(Bot):
                 stage_id=f'C{bm.category_id}:{bm.new}',
                 short_description=title,
                 detailed_description=data['detailed_description'],
-                break_type=break_type_data[
-                    ' '.join(data['break_type'].split()[1:])],
-                zone=zone_data[' '.join(data['zone'].split()[1:])],
+
                 photo_path=file_path,
                 short_description_field=bm.short_description,
                 detailed_description_field=bm.detailed_description,
-                break_type_field=bm.break_type,
-                zone_field=bm.zone,
+
                 photo_field=bm.photo)
             deal_id = await bm.create_deal(json=json)
             update_title_json = asign_deal_id_on_title(
@@ -135,24 +129,23 @@ class TechBot(Bot):
                 department_id=data['department_id'],
                 status_id=data['status_id'],
                 creator_telegram_id=data['creator_telegram_id'],
-                zone=data['zone'],
-                break_type=data['break_type'],
                 photo=data['creator_photo'],
                 short_description=data['short_description'],
                 detailed_description=data['detailed_description'])
             current_deal = await db.get_current_request_of_department(
                 department_id=data['department_id'],
                 bitrix_deal_id=deal_id)
-            status = await bm.send_to_scheduler(
-                deal_id=deal_id,
-                start_date=dt.datetime.strftime(
-                    current_deal[28], '%Y-%m-%d %H:%M:%S'))
-            if status != 200:
-                print('Ошибка передачи информации планировщику')
-            """             await self.request_timetracker(
-                            start_date=current_deal[28],
-                            deal_id=current_deal[0],
-                            department_id=current_deal[1]) """
+            # status = await bm.send_to_scheduler(  # временно
+            # deal_id=deal_id,
+            # start_date=dt.datetime.strftime(
+            # current_deal[26], '%Y-%m-%d %H:%M:%S'))
+            # print ('ответ от планировщика', status)
+            # if status != 200:
+            # print('Ошибка передачи информации планировщику')
+            """  await self.request_timetracker(
+                start_date=current_deal[28],
+                deal_id=current_deal[0],
+                department_id=current_deal[1]) """
             await self.clear_messages(
                 message=message, state=state, finish=True)
             user_data = await db.get_employee_by_sign(message.from_user.id)
@@ -160,11 +153,11 @@ class TechBot(Bot):
             is_executor = False
             # if current_deal[5] == user_data[1]:
             # is_creator = True
-            if current_deal[18] == user_data[1]:
+            if current_deal[16] == user_data[1]:
                 is_executor = True
             await self.send_photo(
                 chat_id=message.from_user.id,
-                photo=current_deal[15],
+                photo=current_deal[13],
                 caption=request_detail_message(current_deal),
                 reply_markup=create_current_request_menu(
                     position_id=user_data[4],
@@ -224,7 +217,7 @@ class TechBot(Bot):
             is_executor = False
             if user_data[4] == 4:
                 is_executor = True
-            photo_data = current_deal[15]
+            photo_data = current_deal[13]
             await self.send_photo(
                 chat_id=chat_id,
                 photo=photo_data,
@@ -344,7 +337,7 @@ class TechBot(Bot):
                     reply_markup=current_request_keyboard(
                         department_id=current_request[1],
                         deal_id=current_request[0],
-                        title=current_request[16]))
+                        title=current_request[14]))
             await self.clear_messages(
                 message=message, state=state, finish=True)
             if user_data[4] == 4:

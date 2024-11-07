@@ -5,6 +5,7 @@ extend-ignore =
 exclude =
     venv,
     .vteach,
+    .vtech,
     .git,
     __pycache__,
     docs/source/conf.py,

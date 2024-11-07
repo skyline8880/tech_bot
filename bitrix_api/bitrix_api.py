@@ -20,8 +20,6 @@ class BitrixMethods():
         self.onmgr = None
         self.hangon = None
         self.done = None
-        self.zone = None
-        self.break_type = None
         self.photo = None
         self.short_description = None
         self.detailed_description = None
@@ -45,8 +43,6 @@ class BitrixMethods():
             self.done
                 ) = await self.db.get_bitrix_stage(self.dep_id)
         (
-            self.zone,
-            self.break_type,
             self.photo,
             self.short_description,
             self.detailed_description,
@@ -90,24 +86,6 @@ class BitrixMethods():
         async with aiohttp.ClientSession() as session:
             async with session.get(url=url, params=params) as response:
                 return await response.json()
-
-    async def get_break_type_key_value(self):
-        items = await self.get_deal_fields()
-        items = items['result'][
-            self.break_type]['items']
-        result = {}
-        for item in items:
-            result[item['VALUE']] = item['ID']
-        return result
-
-    async def get_zone_key_value(self):
-        items = await self.get_deal_fields()
-        items = items['result'][
-            self.zone]['items']
-        result = {}
-        for item in items:
-            result[item['VALUE']] = item['ID']
-        return result
 
     async def get_timeline_fields(self):
         url = f'{self.dep_link}{self.token}/crm.timeline.comment.fields'

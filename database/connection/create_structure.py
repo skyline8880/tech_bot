@@ -46,8 +46,6 @@ CREATE_STRUCTURE = f'''
         department_id INTEGER NOT NULL,
         status_id INTEGER NOT NULL,
         creator_telegram_id BIGINT NOT NULL,
-        zone VARCHAR(150) NOT NULL,
-        break_type VARCHAR(150) NOT NULL,
         creator_photo VARCHAR(500) NOT NULL,
         short_description VARCHAR(150) NOT NULL,
         detailed_description VARCHAR(400) NOT NULL,
@@ -60,8 +58,6 @@ CREATE_STRUCTURE = f'''
     CREATE TABLE IF NOT EXISTS {Tables.SCHEMA}.{Tables.BITRIX_FIELD} (
         id SERIAL PRIMARY KEY,
         department_id INTEGER UNIQUE NOT NULL,
-        zone VARCHAR(150),
-        break_type VARCHAR(150),
         photo VARCHAR(150),
         short_description VARCHAR(150),
         detailed_description VARCHAR(150),

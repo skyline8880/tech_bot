@@ -1,13 +1,11 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
-from bitrix_api.bitrix_api import BitrixMethods
-from constants.buttons_init import (ActionButtons, CreateZoneKeyboard,
-                                    CreatorButtons,
+# from bitrix_api.bitrix_api import BitrixMethods
+from constants.buttons_init import (ActionButtons, CreatorButtons,
                                     CurrentRequestActionButtons, DateReports,
                                     ReportsRequest, RequestButtons)
 from constants.database_init import Department, Position
-from filters.callback_filters import (BreakTypeCallbackData,
-                                      CurrentRequestActionCallbackData,
+from filters.callback_filters import (CurrentRequestActionCallbackData,
                                       DateReportsCD, DepartmentCallbackData,
                                       FloorCallbackData,
                                       GetCurrentRequestCallbackData,
@@ -16,9 +14,7 @@ from filters.callback_filters import (BreakTypeCallbackData,
                                       RequestNavigationCallbackData,
                                       RequestPageInfoCallbackData,
                                       UserActionsCallbackData,
-                                      UserCreatorCallbackData,
-                                      ZoneCallbackData)
-
+                                      UserCreatorCallbackData)
 
 cancel_button = [
     InlineKeyboardButton(
@@ -174,7 +170,7 @@ async def create_floor_menu(floor_data):
         row_width=2, inline_keyboard=menu_buttons)
 
 
-async def create_zone_menu(department_id, floor=None):
+"""async def create_zone_menu(department_id, floor=None):
     menu_buttons = []
     btn_row = []
     if floor is None:
@@ -232,7 +228,7 @@ async def create_break_type_menu(department_id):
         menu_buttons.append(btn_row)
     menu_buttons.append(back_button)
     return InlineKeyboardMarkup(
-        row_width=2, inline_keyboard=menu_buttons)
+        row_width=2, inline_keyboard=menu_buttons)"""
 
 
 def create_current_request_menu(
