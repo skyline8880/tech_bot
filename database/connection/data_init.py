@@ -35,16 +35,12 @@ INSERT_BITRIX_ACCOUNT = f'''
 INSERT_BITRIX_FIELD = f'''
     INSERT INTO {Tables.SCHEMA}.{Tables.BITRIX_FIELD} (
         department_id,
-        zone,
-        break_type,
         photo,
         short_description,
         detailed_description,
         report)
     VALUES (
         %(department_id)s,
-        %(zone)s,
-        %(break_type)s,
         %(photo)s,
         %(short_description)s,
         %(detailed_description)s,

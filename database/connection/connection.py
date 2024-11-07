@@ -122,8 +122,6 @@ class DatabaseConnection():
                     query=INSERT_BITRIX_FIELD,
                     params={
                         'department_id': field_line.value[0],
-                        'zone': field_line.value[1],
-                        'break_type': field_line.value[2],
                         'photo': field_line.value[3],
                         'short_description': field_line.value[4],
                         'detailed_description': field_line.value[5],

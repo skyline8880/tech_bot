@@ -171,8 +171,17 @@ async def choose_reports_period_callback(
                                                    end, status_id,
                                                    department_id)
 
-            filepath, filename = await db.report_request(result, status_name,
-                                                         begin, end)
+            result = await db.report_request(result, status_name,
+                                             begin, end)
+            if result is not None:
+                filepath, filename = result
+            else:
+
+                await query.message.answer(
+                        text='Отчет за данный период недоступен',
+                        reply_markup=reports_keyboard()
+                )
+                return
 
             await bot.send_document(
                 chat_id=query.message.chat.id,

@@ -6,17 +6,16 @@ from aiogram.types import CallbackQuery, Message
 from aiogram.utils.chat_action import ChatActionSender
 
 from bot.bot import bot
-from constants.buttons_init import CreateZoneKeyboard, CreatorButtons
+from constants.buttons_init import CreatorButtons
 from database.database import Database
 from filters.callback_filters import (DepartmentCallbackData,
                                       PositionCallbackData,
                                       UserCreatorCallbackData)
 from filters.message_filters import (IsActive, IsAdmin, IsMainAdmin, IsPhone,
                                      IsPrivate, IsTop)
-from keyboards.menu import (cancel_keyboard, create_departments_menu,
-                            create_floor_menu, create_positions_menu,
-                            create_zone_menu)
-from messages.request import request_floor_message, request_zone_message
+from keyboards.menu import (back_keyboard, cancel_keyboard,
+                            create_departments_menu, create_positions_menu)
+from messages.request import request_photo_message
 from messages.users import (choose_department_message, choose_position_message,
                             employee_phone_entry_message,
                             employee_was_fired_message,
@@ -140,21 +139,10 @@ async def choose_employees_or_request_department(
                 text=choose_position_message(),
                 reply_markup=create_positions_menu(position_id=user_data[4]))
             return
-        split_by_floor = await CreateZoneKeyboard(
-            department_id=department_data[0]).get_floors_dict()
-        actual_keyboard = await create_zone_menu(
-                department_id=department_data[0])
-        actual_message = request_zone_message()
-        actual_state = CreatorRequest.zone
-        if split_by_floor is not None:
-            actual_keyboard = await create_floor_menu(
-                floor_data=split_by_floor)
-            actual_message = request_floor_message()
-            actual_state = CreatorRequest.floor
-        await state.set_state(actual_state)
+        await state.set_state(CreatorRequest.creator_photo)
         await query.message.answer(
-            text=actual_message,
-            reply_markup=actual_keyboard)
+            text=request_photo_message(),
+            reply_markup=back_keyboard)
 
 
 @router.callback_query(
