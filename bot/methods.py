@@ -135,11 +135,11 @@ class TechBot(Bot):
             current_deal = await db.get_current_request_of_department(
                 department_id=data['department_id'],
                 bitrix_deal_id=deal_id)
-            status = await bm.send_to_scheduler(  
-            deal_id=deal_id,
-            start_date=dt.datetime.strftime(
-            current_deal[26], '%Y-%m-%d %H:%M:%S'))
-            print ('ответ от планировщика', status)
+            status = await bm.send_to_scheduler(
+                deal_id=deal_id,
+                start_date=dt.datetime.strftime(
+                    current_deal[26], '%Y-%m-%d %H:%M:%S'))
+            print('ответ от планировщика', status)
             if status != 200:
                 print('Ошибка передачи информации планировщику')
             """  await self.request_timetracker(
