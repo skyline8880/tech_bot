@@ -1,5 +1,5 @@
 from typing import Union
-
+import datetime as dt
 from aiogram import Bot
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums.chat_action import ChatAction
@@ -135,13 +135,13 @@ class TechBot(Bot):
             current_deal = await db.get_current_request_of_department(
                 department_id=data['department_id'],
                 bitrix_deal_id=deal_id)
-            # status = await bm.send_to_scheduler(  # временно
-            # deal_id=deal_id,
-            # start_date=dt.datetime.strftime(
-            # current_deal[26], '%Y-%m-%d %H:%M:%S'))
-            # print ('ответ от планировщика', status)
-            # if status != 200:
-            # print('Ошибка передачи информации планировщику')
+            status = await bm.send_to_scheduler(  
+            deal_id=deal_id,
+            start_date=dt.datetime.strftime(
+            current_deal[26], '%Y-%m-%d %H:%M:%S'))
+            print ('ответ от планировщика', status)
+            if status != 200:
+                print('Ошибка передачи информации планировщику')
             """  await self.request_timetracker(
                 start_date=current_deal[28],
                 deal_id=current_deal[0],
