@@ -25,6 +25,7 @@ class Department(Enum):
 class Position(Enum):
     MAINADMIN = 'Главный администратор'
     ADMIN = '💻 Администратор'
+    # TECHAUDIT = '🕵️ Ревизор'
     TOPMGR = ' 🌟 Сотрудник клуба'
     EMPLOYEE = '👨‍💼 Техник'
 

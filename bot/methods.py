@@ -1,12 +1,14 @@
-from typing import Union
 import datetime as dt
-from aiogram import Bot
+from typing import Union
+
+from aiogram import Bot, exceptions
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums.chat_action import ChatAction
 from aiogram.enums.parse_mode import ParseMode
 from aiogram.fsm.context import FSMContext
-from aiogram.types import BotCommand, CallbackQuery, Message
+from aiogram.types import BotCommand, CallbackQuery, Message, input_file
 from aiogram.utils.chat_action import ChatActionSender
+from PIL import Image, ImageDraw, ImageFont
 
 from bitrix_api.bitrix_api import BitrixMethods
 from bitrix_api.bitrix_params import (asign_deal_id_on_title, create_deal_json,
@@ -23,8 +25,6 @@ from messages.request import (bitrix_creat_deal_error_message,
                               done_request_message, new_request_message,
                               request_action_message, request_detail_message,
                               request_list_message)
-
-# from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 
 class TechBot(Bot):
@@ -218,15 +218,43 @@ class TechBot(Bot):
             if user_data[4] == 4:
                 is_executor = True
             photo_data = current_deal[13]
-            await self.send_photo(
-                chat_id=chat_id,
-                photo=photo_data,
-                caption=request_detail_message(current_deal),
-                reply_markup=create_current_request_menu(
-                    position_id=user_data[4],
-                    request_status_id=current_deal[3],
-                    is_creator=is_creator,
-                    is_executor=is_executor))
+            try:
+                await self.send_photo(
+                    chat_id=chat_id,
+                    photo=photo_data,
+                    caption=request_detail_message(current_deal),
+                    reply_markup=create_current_request_menu(
+                        position_id=user_data[4],
+                        request_status_id=current_deal[3],
+                        is_creator=is_creator,
+                        is_executor=is_executor))
+            except exceptions.TelegramBadRequest as e:
+                if str(e) == (
+                        "Telegram server says - Bad Request: "
+                        "wrong file identifier/HTTP URL specified"):
+                    img = Image.new('RGB', (500, 500), color="white")
+                    font = ImageFont.truetype(
+                        font="arial.ttf", size=25, encoding="UTF-8")
+                    d = ImageDraw.Draw(img)
+                    d.multiline_text(
+                        xy=(130, 200),
+                        text="Фото заявки удалено\n с сервера телеграм",
+                        fill="black",
+                        font=font)
+                    no_photo = "no_photo.png"
+                    img.save(no_photo)
+                    photo = input_file.FSInputFile(no_photo)
+                    await self.send_photo(
+                        chat_id=chat_id,
+                        photo=photo,
+                        caption=request_detail_message(current_deal),
+                        reply_markup=create_current_request_menu(
+                            position_id=user_data[4],
+                            request_status_id=current_deal[3],
+                            is_creator=is_creator,
+                            is_executor=is_executor))
+            except Exception as er:
+                print(f"ERROR: {er}")
             return True
 
     async def open_any_request_list(self, query: CallbackQuery, page: int):
