@@ -24,7 +24,7 @@ from messages.request import (bitrix_creat_deal_error_message,
                               done_request_message, new_request_message,
                               request_action_message, request_detail_message,
                               request_list_message)
-from utils.paths import create_no_photo_pic
+from utils.paths import path_to_no_photo_pic
 
 
 class TechBot(Bot):
@@ -232,7 +232,7 @@ class TechBot(Bot):
                 if str(e) == (
                         "Telegram server says - Bad Request: "
                         "wrong file identifier/HTTP URL specified"):
-                    photo = input_file.FSInputFile(create_no_photo_pic())
+                    photo = input_file.FSInputFile(path_to_no_photo_pic())
                     await self.send_photo(
                         chat_id=chat_id,
                         photo=photo,
