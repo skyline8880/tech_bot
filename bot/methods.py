@@ -8,7 +8,6 @@ from aiogram.enums.parse_mode import ParseMode
 from aiogram.fsm.context import FSMContext
 from aiogram.types import BotCommand, CallbackQuery, Message, input_file
 from aiogram.utils.chat_action import ChatActionSender
-from PIL import Image, ImageDraw, ImageFont
 
 from bitrix_api.bitrix_api import BitrixMethods
 from bitrix_api.bitrix_params import (asign_deal_id_on_title, create_deal_json,
@@ -25,6 +24,7 @@ from messages.request import (bitrix_creat_deal_error_message,
                               done_request_message, new_request_message,
                               request_action_message, request_detail_message,
                               request_list_message)
+from utils.paths import create_no_photo_pic
 
 
 class TechBot(Bot):
@@ -232,18 +232,7 @@ class TechBot(Bot):
                 if str(e) == (
                         "Telegram server says - Bad Request: "
                         "wrong file identifier/HTTP URL specified"):
-                    img = Image.new('RGB', (500, 500), color="white")
-                    font = ImageFont.truetype(
-                        font="arial.ttf", size=25, encoding="UTF-8")
-                    d = ImageDraw.Draw(img)
-                    d.multiline_text(
-                        xy=(130, 200),
-                        text="Фото заявки удалено\n с сервера телеграм",
-                        fill="black",
-                        font=font)
-                    no_photo = "no_photo.png"
-                    img.save(no_photo)
-                    photo = input_file.FSInputFile(no_photo)
+                    photo = input_file.FSInputFile(create_no_photo_pic())
                     await self.send_photo(
                         chat_id=chat_id,
                         photo=photo,
