@@ -33,16 +33,18 @@ def request_break_type_message():
 
 def request_photo_message():
     return markdown.text(
-        markdown.markdown_decoration.quote('Сделайте снимок неисправности'),
+        markdown.markdown_decoration.quote('Сделайте снимок неисправности,'),
+        markdown.markdown_decoration.quote('добавьте описание'),
         markdown.markdown_decoration.quote('и отправьте его боту.'),
         sep='\n')
 
 
 def request_report_photo_message():
     return markdown.text(
-        markdown.markdown_decoration.quote('Сделайте снимок результата,'),
-        markdown.markdown_decoration.quote('выполненной работы и отправьте'),
-        markdown.markdown_decoration.quote('его боту.'),
+        markdown.markdown_decoration.quote('Сделайте снимок результата'),
+        markdown.markdown_decoration.quote('выполненной работы,'),
+        markdown.markdown_decoration.quote('добавьте описание'),
+        markdown.markdown_decoration.quote('и отправьте его боту.'),
         sep='\n')
 
 
@@ -84,7 +86,27 @@ def request_wrong_photo_message():
         sep='\n')
 
 
-def bitrix_creat_deal_error_message():
+def request_wrong_photo_caption():
+    return markdown.text(
+        markdown.markdown_decoration.quote('Обязательно добавьте'),
+        markdown.markdown_decoration.quote('описание к фото!'),
+        sep='\n')
+
+
+def request_wrong_length_photo_caption(length, is_exec=False):
+    limit = 500
+    if is_exec:
+        limit = 200
+    if length <= limit:
+        return False
+    return markdown.text(
+        markdown.markdown_decoration.quote('Слишком длинное описание!'),
+        markdown.markdown_decoration.quote(f'Допустимо не более: {limit} символов'),
+        markdown.markdown_decoration.quote(f'Внесено: {length} символов'),
+        sep='\n')
+
+
+def bitrix_create_deal_error_message():
     return markdown.text(
         markdown.markdown_decoration.quote(
             'Ошибка публикации заявки в битрикс!'),
@@ -93,7 +115,7 @@ def bitrix_creat_deal_error_message():
 
 def request_detail_message(request_data):
     executor = request_data[19]
-    executor_fullname = f'{request_data[27]} {request_data[28]}'
+    executor_fullname = f'{request_data[29]} {request_data[30]}'
     report = request_data[25]
     if executor is None:
         executor = ' - '

@@ -48,10 +48,10 @@ CREATE_STRUCTURE = f'''
         creator_telegram_id BIGINT NOT NULL,
         creator_photo VARCHAR(500) NOT NULL,
         short_description VARCHAR(150) NOT NULL,
-        detailed_description VARCHAR(400) NOT NULL,
+        detailed_description VARCHAR(500) NOT NULL,
         executor_telegram_id BIGINT,
         executor_photo VARCHAR(500),
-        report VARCHAR(500),
+        report VARCHAR(200),
         create_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
 

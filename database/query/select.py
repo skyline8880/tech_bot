@@ -299,7 +299,7 @@ SELECT_CURRENT_REQUEST_OF_DEPARTMENT = f'''
         req.executor_telegram_id AS executor_telegram_id,
         eemp.username AS creator_username,
         eemp.full_name  AS creator_full_name,
-        eemp.phone AS creator_phone,
+        eemp.phone AS executor_phone,
         eemp.department_id AS executor_department_id,
         edep.name AS executor_department,
         eemp.position_id AS executor_position_id,

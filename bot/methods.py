@@ -1,6 +1,7 @@
 import datetime as dt
 from typing import Union
 
+from core.secrets import TelegramSectrets
 from aiogram import Bot, exceptions
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums.chat_action import ChatAction
@@ -8,19 +9,31 @@ from aiogram.enums.parse_mode import ParseMode
 from aiogram.fsm.context import FSMContext
 from aiogram.types import BotCommand, CallbackQuery, Message, input_file
 from aiogram.utils.chat_action import ChatActionSender
-
+from constants.buttons_init import (CreatorButtons,
+                                    CurrentRequestActionButtons,
+                                    RequestButtons)
+from filters.callback_filters import (BreakTypeCallbackData,
+                                      CurrentRequestActionCallbackData,
+                                      GetCurrentRequestCallbackData,
+                                      RequestActionCallbackData,
+                                      RequestNavigationCallbackData,
+                                      RequestPageInfoCallbackData,
+                                      UserCreatorCallbackData)
+from states.states import (CloseRequest, CreatorRequest, HandoverRequest,
+                           RequestSign)
 from bitrix_api.bitrix_api import BitrixMethods
 from bitrix_api.bitrix_params import (asign_deal_id_on_title, create_deal_json,
                                       timeline_add_on_close_json,
                                       update_on_close_json)
 from constants.buttons_init import CreatorButtons
+from constants.database_init import Position
 from core.secrets import get_path
 from database.database import Database
 from keyboards.menu import (create_current_request_menu,
                             create_menu_by_position, create_request_list_menu,
                             create_request_menu, current_request_keyboard)
 from messages.intro import auth_employee_pos_and_dep_message
-from messages.request import (bitrix_creat_deal_error_message,
+from messages.request import (bitrix_create_deal_error_message,
                               done_request_message, new_request_message,
                               request_action_message, request_detail_message,
                               request_list_message)
@@ -76,6 +89,24 @@ class TechBot(Bot):
                 pass
         if finish:
             await state.clear()
+    
+    async def group_id(self, department_id):
+        GROUPS = {
+            1: None,
+            2: TelegramSectrets.MSK_GROUP,
+            3: TelegramSectrets.VLK_GROUP,
+            4: TelegramSectrets.NKR_GROUP,
+            5: TelegramSectrets.BTV_GROUP
+        }
+        group_id = None
+        try:
+            group_id = GROUPS[int(department_id)]
+        except Exception:
+            print(
+                'telegram group not found by'
+                f'department_id = {department_id}')
+        finally:
+            return group_id
 
     async def generate_deal_photo(self, file_id):
         file = await self.get_file(file_id=file_id)
@@ -86,9 +117,44 @@ class TechBot(Bot):
             destination=local_path)
         return local_path
 
+    async def edit_request(
+            self,
+            query: CallbackQuery,
+            state: FSMContext,
+            department_id: int,
+            bitrix_deal_id: int,
+            status_id: Union[int, str]) -> None:
+        db = Database()
+        await db.update_executor_in_request(
+            executor_telegram_id=query.from_user.id,
+            department_id=department_id,
+            bitrix_deal_id=bitrix_deal_id)
+        await db.update_status_id_in_request(
+            status_id=status_id,
+            department_id=department_id,
+            bitrix_deal_id=bitrix_deal_id)
+        current_deal = await db.get_current_request_of_department(
+            department_id=department_id,
+            bitrix_deal_id=bitrix_deal_id)
+        user_data = await db.get_employee_by_sign(query.from_user.id)
+        print(current_deal)
+        print(user_data)
+        try:
+            await self.edit_message_caption(
+                chat_id=await self.group_id(department_id),
+                message_id=query.message.message_id,
+                caption=request_detail_message(current_deal),
+                reply_markup=create_current_request_menu(
+                    user_data=user_data,
+                    current_deal=current_deal))
+        except Exception as e:
+            print(f'No changes on edit: {e}')
+
     async def create_request(self, message: Message, state: FSMContext):
         db = Database()
-        await state.update_data(detailed_description=message.text)
+        await state.update_data(detailed_description=message.caption)
+        await state.update_data(
+            short_description=f'{message.caption[:30]}...')
         data = await state.get_data()
         await self.clear_messages(message=message, state=state, finish=True)
         action_sender = ChatActionSender(
@@ -109,11 +175,9 @@ class TechBot(Bot):
                 stage_id=f'C{bm.category_id}:{bm.new}',
                 short_description=title,
                 detailed_description=data['detailed_description'],
-
                 photo_path=file_path,
                 short_description_field=bm.short_description,
                 detailed_description_field=bm.detailed_description,
-
                 photo_field=bm.photo)
             deal_id = await bm.create_deal(json=json)
             update_title_json = asign_deal_id_on_title(
@@ -122,7 +186,7 @@ class TechBot(Bot):
                 title=title)
             await bm.update_deal(json=update_title_json)
             if deal_id is None:
-                await message.answer(text=bitrix_creat_deal_error_message())
+                await message.answer(text=bitrix_create_deal_error_message())
                 return
             await db.insert_into_request(
                 bitrix_deal_id=deal_id,
@@ -135,13 +199,13 @@ class TechBot(Bot):
             current_deal = await db.get_current_request_of_department(
                 department_id=data['department_id'],
                 bitrix_deal_id=deal_id)
-            status = await bm.send_to_scheduler(
+            """ status = await bm.send_to_scheduler(
                 deal_id=deal_id,
                 start_date=dt.datetime.strftime(
                     current_deal[26], '%Y-%m-%d %H:%M:%S'))
             print('ответ от планировщика', status)
             if status != 200:
-                print('Ошибка передачи информации планировщику')
+                print('Ошибка передачи информации планировщику') """
             """  await self.request_timetracker(
                 start_date=current_deal[28],
                 deal_id=current_deal[0],
@@ -153,7 +217,7 @@ class TechBot(Bot):
             is_executor = False
             # if current_deal[5] == user_data[1]:
             # is_creator = True
-            if current_deal[16] == user_data[1]:
+            """ if current_deal[16] == user_data[1]:
                 is_executor = True
             await self.send_photo(
                 chat_id=message.from_user.id,
@@ -163,10 +227,18 @@ class TechBot(Bot):
                     position_id=user_data[4],
                     request_status_id=current_deal[3],
                     is_creator=is_creator,
-                    is_executor=is_executor))
+                    is_executor=is_executor)) """
+            emp_pos_data = await db.get_position(Position.EMPLOYEE.value)
+            await self.send_photo(
+                chat_id=await self.group_id(department_id),
+                photo=current_deal[13],
+                caption=request_detail_message(current_deal),
+                reply_markup=create_current_request_menu(
+                    user_data=user_data,
+                    current_deal=current_deal))
             executors = await db.get_executors(
                 department_id=department_id)
-            if executors is None or executors == []:
+            """ if executors is None or executors == []:
                 return
             for executor in executors:
                 try:
@@ -183,7 +255,7 @@ class TechBot(Bot):
                     print(
                         'Ошибка отправки заявки исполнителю\n'
                         f'ID: {department_id}/{deal_id}\n'
-                        f'TITLE: {title}')
+                        f'TITLE: {title}') """
 
     async def open_current_request(
             self,
@@ -298,7 +370,7 @@ class TechBot(Bot):
                     page=page, data=data, position_id=user_data[4]))
 
     async def close_request(self, message: Message, state: FSMContext):
-        await state.update_data(report=message.text)
+        await state.update_data(report=message.caption)
         data = await state.get_data()
         db = Database()
         user_data = await db.get_employee_by_sign(message.from_user.id)
@@ -310,13 +382,13 @@ class TechBot(Bot):
             deal_id=data['deal_id'],
             # photo_path=file_path,
             stage_id=f'C{bm.category_id}:{bm.done}',
-            report=message.text,
+            report=message.caption,
             # photo_field=bm.photo,
             report_field=bm.report)
         timeline_json = timeline_add_on_close_json(
             deal_id=data['deal_id'],
             photo_path=file_path,
-            comment=message.text,
+            comment=message.caption,
             user=f'{user_data[9]} {user_data[10]}')
         action_sender = ChatActionSender(
             bot=self,
@@ -329,11 +401,11 @@ class TechBot(Bot):
                 await self.clear_messages(
                     message=message, state=state, finish=True)
                 await message.answer(
-                    text=bitrix_creat_deal_error_message())
+                    text=bitrix_create_deal_error_message())
                 return
             await db.update_photo_and_report_in_request(
                 executor_photo=data['executor_photo'],
-                report=message.text,
+                report=message.caption,
                 department_id=data['department_id'],
                 bitrix_deal_id=data['deal_id'])
             await db.update_status_id_in_request(

@@ -135,10 +135,9 @@ async def choose_employees_or_request_department(
         if await state.get_state() == ActionsToEmployee.department_id:
             await state.set_state(ActionsToEmployee.position_id)
             user_data = await db.get_employee_by_sign(query.from_user.id)
-            await query.message.answer(
+            return await query.message.answer(
                 text=choose_position_message(),
                 reply_markup=create_positions_menu(position_id=user_data[4]))
-            return
         await state.set_state(CreatorRequest.creator_photo)
         await query.message.answer(
             text=request_photo_message(),

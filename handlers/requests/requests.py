@@ -25,7 +25,7 @@ from keyboards.menu import (back_keyboard, cancel_keyboard,
                             create_departments_menu, create_menu_by_position,
                             create_request_menu)
 from messages.intro import auth_employee_pos_and_dep_message
-from messages.request import (bitrix_creat_deal_error_message,
+from messages.request import (bitrix_create_deal_error_message,
                               enter_request_sign_message,
                               handover_description_message, no_request_message,
                               request_action_message,
@@ -35,6 +35,8 @@ from messages.request import (bitrix_creat_deal_error_message,
                               request_report_text_message,
                               request_short_desc_message,
                               request_wrong_photo_message,
+                              request_wrong_photo_caption,
+                              request_wrong_length_photo_caption,
                               request_wrong_text_message,
                               wrong_request_department_message,
                               wrong_request_sign_message)
@@ -80,13 +82,19 @@ async def create_request_action(
         await state.update_data(creator_telegram_id=query.from_user.id)
         await state.update_data(status_id=1)
         user_data = await db.get_employee_by_sign(query.from_user.id)
+        if user_data[4] < 4:
+            return await query.message.answer(
+                text=choose_department_message(),
+                reply_markup=create_departments_menu(
+                    position_id=user_data[4], department_id=user_data[6]))
+        await state.update_data(department_id=user_data[6])
+        await state.set_state(CreatorRequest.creator_photo)
         await query.message.answer(
-            text=choose_department_message(),
-            reply_markup=create_departments_menu(
-                position_id=user_data[4], department_id=user_data[6]))
+            text=request_photo_message(),
+            reply_markup=back_keyboard)
 
 
-@router.callback_query(
+""" @router.callback_query(
         BreakTypeCallbackData.filter(),
         IsActive(), or_f(IsMainAdmin(), IsAdmin(), IsTop()))
 async def choose_break_type_action(
@@ -98,18 +106,26 @@ async def choose_break_type_action(
     await state.set_state(CreatorRequest.creator_photo)
     await query.message.answer(
         text=request_photo_message(),
-        reply_markup=back_keyboard)
+        reply_markup=back_keyboard) """
 
 
 @router.message(CreatorRequest.creator_photo, IsPhoto(), IsPrivate(),
                 or_f(IsMainAdmin(), IsAdmin(), IsTop()))
 async def get_photo(message: Message, state: FSMContext) -> None:
+    if message.caption is None:
+        await message.delete()
+        return await message.answer(text=request_wrong_photo_caption())
+    if len(message.caption) > 800:
+        await message.delete()
+        return await message.answer(
+            text=request_wrong_length_photo_caption(len(message.caption)))        
     await state.update_data(creator_photo=message.photo[-1].file_id)
-    await bot.clear_messages(message=message, state=state, finish=False)
-    await state.set_state(CreatorRequest.short_description)
-    await message.answer(
-        text=request_short_desc_message(),
-        reply_markup=back_keyboard)
+    await bot.create_request(message=message, state=state)
+    # await bot.clear_messages(message=message, state=state, finish=False)
+    # await state.set_state(CreatorRequest.short_description)
+    # await message.answer(
+    #     text=request_short_desc_message(),
+    #     reply_markup=back_keyboard)
 
 
 @router.message(CreatorRequest.creator_photo, ~IsPhoto(), IsPrivate(),
@@ -172,7 +188,8 @@ async def requests_list_action(
 
 @router.callback_query(
         RequestActionCallbackData.filter(
-            F.request == RequestButtons.FINDREQUEST), IsActive())
+            F.request == RequestButtons.FINDREQUEST),
+        IsActive(), or_f(IsMainAdmin(), IsAdmin(), IsTop()))
 async def requests_find_action(
         query: CallbackQuery, state: FSMContext) -> None:
     await query.message.delete()
@@ -238,7 +255,7 @@ async def get_current_request(query: CallbackQuery) -> None:
         query=query, department_id=department_id, deal_id=deal_id)
 
 
-@router.callback_query(
+""" @router.callback_query(
         CurrentRequestActionCallbackData.filter(
             F.current_act.in_({
                 CurrentRequestActionButtons.INROLE,
@@ -247,13 +264,14 @@ async def get_current_request(query: CallbackQuery) -> None:
         IsActive())
 async def action_to_request(query: CallbackQuery, state: FSMContext) -> None:
     act = query.data.split(':')[-1]
+    print(query.data.split(':'))
     await query.answer(f'{act}')
     request_data = query.message.caption.split('\n')
     db = Database()
     department_id, deal_id = request_data[0].split(':')[-1].strip().split('/')
-    """     department_data = await db.get_department(
-            department_sign=request_data[2].split(':')[-1].strip())
-        department_id = department_data[0] """
+    # department_data = await db.get_department(
+    #     department_sign=request_data[2].split(':')[-1].strip())
+    # department_id = department_data[0]
     if act == CurrentRequestActionButtons.INROLE.value:
         await db.update_executor_in_request(
             executor_telegram_id=query.from_user.id,
@@ -296,7 +314,7 @@ async def action_to_request(query: CallbackQuery, state: FSMContext) -> None:
         status = await bm.update_deal(json=json)
         if status != 200:
             await query.message.answer(
-                text=bitrix_creat_deal_error_message())
+                text=bitrix_create_deal_error_message())
             return
         await db.update_status_id_in_request(
             status_id=4,
@@ -306,7 +324,53 @@ async def action_to_request(query: CallbackQuery, state: FSMContext) -> None:
     await bot.open_current_request(
         query=query,
         department_id=department_id,
-        deal_id=deal_id)
+        deal_id=deal_id) """
+
+
+@router.callback_query(
+        CurrentRequestActionCallbackData.filter(
+            F.current_act.in_({
+                CurrentRequestActionButtons.INROLE,
+                CurrentRequestActionButtons.HANDOVERMGR,
+                CurrentRequestActionButtons.HANGON})),
+        IsActive())
+async def action_to_request(query: CallbackQuery, state: FSMContext) -> None:
+    _, act, status_id, department_id, bitrix_deal_id = query.data.split(':')
+    print(act)
+    bm = await BitrixMethods(
+        department_sign=department_id).collect_portal_data()
+    if act != CurrentRequestActionButtons.INROLE.value:
+        assigned = bm.head_tech
+        cat = bm.hangon
+        if act == CurrentRequestActionButtons.HANDOVERMGR.value:
+            assigned = bm.head_tech
+            cat = bm.onmgr
+        json = update_json(
+            deal_id=bitrix_deal_id,
+            params={
+                'STAGE_ID': f'C{bm.category_id}:{cat}',
+                'ASSIGNED_BY_ID': assigned
+            }
+        )
+        status = await bm.update_deal(json=json)
+        if status != 200:
+            await query.message.answer(
+                text=bitrix_create_deal_error_message())
+            return
+    await bot.edit_request(
+        query=query,
+        state=state,
+        department_id=department_id,
+        bitrix_deal_id=bitrix_deal_id,
+        status_id=status_id
+    )
+    """ await query.message.delete()
+    await bot.open_current_request(
+        query=query,
+        department_id=department_id,
+        deal_id=bitrix_deal_id) """
+
+
 
 
 @router.message(HandoverRequest.comment, IsActive(), IsPrivate(),
@@ -338,7 +402,7 @@ async def get_request_handover_description(
     await bm.timeline_add(json=timeline_json)
     if status != 200:
         await message.answer(
-            text=bitrix_creat_deal_error_message())
+            text=bitrix_create_deal_error_message())
         return
     await db.update_executor_in_request(
         executor_telegram_id=message.from_user.id,
@@ -392,17 +456,28 @@ async def action_done_to_request(
         reply_markup=cancel_keyboard)
 
 
-@router.message(CloseRequest.executor_photo, IsPhoto(), IsPrivate())
+@router.message(CloseRequest.executor_photo, IsPhoto(), ~IsPrivate())
 async def get_report_photo(message: Message, state: FSMContext) -> None:
+    if message.caption is None:
+        await message.delete()
+        return await message.answer(text=request_wrong_photo_caption())
+    text = request_wrong_length_photo_caption(
+        length=len(message.caption),
+        is_exec=True)
+    if text:
+        await message.delete()
+        return await message.answer(
+            text=text)   
     await state.update_data(executor_photo=message.photo[-1].file_id)
-    await bot.clear_messages(message=message, state=state, finish=False)
+    await bot.close_request(message=message, state=state)
+    """ await bot.clear_messages(message=message, state=state, finish=False)
     await state.set_state(CloseRequest.report)
     await message.answer(
         text=request_report_text_message(),
-        reply_markup=cancel_keyboard)
+        reply_markup=cancel_keyboard) """
 
 
-@router.message(CloseRequest.executor_photo, ~IsPhoto(), IsPrivate())
+@router.message(CloseRequest.executor_photo, ~IsPhoto(), ~IsPrivate())
 async def get_report_wrong_photo(message: Message, state: FSMContext) -> None:
     await message.delete()
     await message.answer(text=request_wrong_photo_message())

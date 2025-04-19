@@ -30,6 +30,10 @@ class TelegramSectrets:
     BOT_TOKEN = os.getenv('BOT_TOKEN')
     BOT_USERNAME = os.getenv('BOT_USERNAME')
     DEVELOPER = int(os.getenv('DEVELOPER'))
+    MSK_GROUP = int(os.getenv('MSK_GROUP'))
+    VLK_GROUP = int(os.getenv('VLK_GROUP'))
+    NKR_GROUP = int(os.getenv('NKR_GROUP'))
+    BTV_GROUP = int(os.getenv('BTV_GROUP'))
 
 
 class BitrixSecrets():
