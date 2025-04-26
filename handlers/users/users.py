@@ -138,10 +138,11 @@ async def choose_employees_or_request_department(
             return await query.message.answer(
                 text=choose_position_message(),
                 reply_markup=create_positions_menu(position_id=user_data[4]))
-        await state.set_state(CreatorRequest.creator_photo)
-        await query.message.answer(
+        result = await query.message.answer(
             text=request_photo_message(),
             reply_markup=back_keyboard)
+        await state.update_data(start_message=result.message_id)
+        await state.set_state(CreatorRequest.creator_photo)
 
 
 @router.callback_query(

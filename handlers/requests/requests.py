@@ -4,6 +4,8 @@ from aiogram.filters import or_f
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 from aiogram.utils.chat_action import ChatActionSender
+from core.secrets import TelegramSectrets
+from asyncio import sleep as async_sleep
 
 from bitrix_api.bitrix_api import BitrixMethods
 from bitrix_api.bitrix_params import timeline_add_on_handover_json, update_json
@@ -77,8 +79,6 @@ async def create_request_action(
         await query.answer(current_query_data)
         await bot.clear_messages(
             message=query.message, state=state, finish=False)
-        await state.set_state(CreatorRequest.start_message)
-        await state.update_data(start_message=query.message.message_id + 1)
         await state.update_data(creator_telegram_id=query.from_user.id)
         await state.update_data(status_id=1)
         user_data = await db.get_employee_by_sign(query.from_user.id)
@@ -88,10 +88,11 @@ async def create_request_action(
                 reply_markup=create_departments_menu(
                     position_id=user_data[4], department_id=user_data[6]))
         await state.update_data(department_id=user_data[6])
-        await state.set_state(CreatorRequest.creator_photo)
-        await query.message.answer(
+        result = await query.message.answer(
             text=request_photo_message(),
             reply_markup=back_keyboard)
+        await state.update_data(start_message=result.message_id)
+        await state.set_state(CreatorRequest.creator_photo)
 
 
 """ @router.callback_query(
@@ -132,7 +133,14 @@ async def get_photo(message: Message, state: FSMContext) -> None:
                 or_f(IsMainAdmin(), IsAdmin(), IsTop()))
 async def get_wrong_photo(message: Message, state: FSMContext) -> None:
     await message.delete()
-    await message.answer(text=request_wrong_photo_message())
+    result = await message.answer(text=request_wrong_photo_message())
+    await async_sleep(5)
+    try:
+        await bot.delete_message(
+            chat_id=message.from_user.id,
+            message_id=result.message_id)
+    except Exception as e:
+        print(f'Error: {e}')
 
 
 @router.message(CreatorRequest.short_description, IsText(), IsPrivate(),
@@ -152,7 +160,14 @@ async def get_request_short_descritpion(
 async def get_request_wrong_short_descritpion(
         message: Message, state: FSMContext) -> None:
     await message.delete()
-    await message.answer(text=request_wrong_text_message())
+    result = await message.answer(text=request_wrong_text_message())
+    await async_sleep(5)
+    try:
+        await bot.delete_message(
+            chat_id=message.from_user.id,
+            message_id=result.message_id)
+    except Exception as e:
+        print(f'Error: {e}')
 
 
 @router.message(CreatorRequest.detailed_description, IsText(), IsPrivate(),
@@ -167,7 +182,14 @@ async def get_request_detailed_descritpion(
 async def get_request_wrong_detailed_descritpion(
         message: Message, state: FSMContext) -> None:
     await message.delete()
-    await message.answer(text=request_wrong_text_message())
+    result = await message.answer(text=request_wrong_text_message())
+    await async_sleep(5)
+    try:
+        await bot.delete_message(
+            chat_id=message.from_user.id,
+            message_id=result.message_id)
+    except Exception as e:
+        print(f'Error: {e}')
 
 
 @router.callback_query(
@@ -336,13 +358,15 @@ async def action_to_request(query: CallbackQuery, state: FSMContext) -> None:
         IsActive())
 async def action_to_request(query: CallbackQuery, state: FSMContext) -> None:
     _, act, status_id, department_id, bitrix_deal_id = query.data.split(':')
-    print(act)
     bm = await BitrixMethods(
         department_sign=department_id).collect_portal_data()
+    status_id_ = 2
     if act != CurrentRequestActionButtons.INROLE.value:
+        status_id_ = 4
         assigned = bm.head_tech
         cat = bm.hangon
         if act == CurrentRequestActionButtons.HANDOVERMGR.value:
+            status_id_ = 3
             assigned = bm.head_tech
             cat = bm.onmgr
         json = update_json(
@@ -354,15 +378,14 @@ async def action_to_request(query: CallbackQuery, state: FSMContext) -> None:
         )
         status = await bm.update_deal(json=json)
         if status != 200:
-            await query.message.answer(
+            return await query.message.reply(
                 text=bitrix_create_deal_error_message())
-            return
     await bot.edit_request(
         query=query,
         state=state,
         department_id=department_id,
         bitrix_deal_id=bitrix_deal_id,
-        status_id=status_id
+        status_id=status_id_
     )
     """ await query.message.delete()
     await bot.open_current_request(
@@ -428,10 +451,42 @@ async def get_request_handover_description(
 async def get_request_wrong_handover_description(
         message: Message, state: FSMContext) -> None:
     await message.delete()
-    await message.answer(text=request_wrong_text_message())
+    result = await message.answer(text=request_wrong_text_message())
+    await async_sleep(5)
+    try:
+        await bot.delete_message(
+            chat_id=message.from_user.id,
+            message_id=result.message_id)
+    except Exception as e:
+        print(f'Error: {e}')
 
 
 @router.callback_query(
+        CurrentRequestActionCallbackData.filter(
+            F.current_act == CurrentRequestActionButtons.DONE),
+        IsActive())
+async def action_done_to_request(
+        query: CallbackQuery, state: FSMContext) -> None:
+    _, act, status_id, department_id, bitrix_deal_id = query.data.split(':')
+    #await query.answer(f'{act}')
+    await query.answer(url=f'https://t.me/{TelegramSectrets.BOT_USERNAME}')
+    start_message = await bot.send_message(
+        chat_id=query.from_user.id,
+        text=request_report_photo_message(),
+        reply_markup=cancel_keyboard
+    )
+    #print(_, act, status_id, department_id, bitrix_deal_id, start_message.message_id)
+    """ await state.set_state(CloseRequest.start_message)
+    await state.update_data(start_message=query.message.message_id + 1)
+    await state.update_data(deal_id=bitrix_deal_id)
+    await state.update_data(department_id=department_id)
+    await state.set_state(CloseRequest.executor_photo)
+    await query.message(
+        text=request_report_photo_message(),
+        reply_markup=cancel_keyboard) """
+
+
+""" @router.callback_query(
         CurrentRequestActionCallbackData.filter(
             F.current_act == CurrentRequestActionButtons.DONE),
         IsActive())
@@ -441,9 +496,9 @@ async def action_done_to_request(
     await query.answer(f'{act}')
     request_data = query.message.caption.split('\n')
     department_id, deal_id = request_data[0].split(':')[-1].strip().split('/')
-    """     department_data = await db.get_department(
-            department_sign=request_data[2].split(':')[-1].strip())
-        department_id = department_data[0] """
+    # department_data = await db.get_department(
+    #     department_sign=request_data[2].split(':')[-1].strip())
+    # department_id = department_data[0]
     await query.message.delete()
     await state.set_state(CloseRequest.start_message)
     await state.update_data(start_message=query.message.message_id + 1)
@@ -453,7 +508,7 @@ async def action_done_to_request(
     await state.set_state(CloseRequest.executor_photo)
     await query.message.answer(
         text=request_report_photo_message(),
-        reply_markup=cancel_keyboard)
+        reply_markup=cancel_keyboard) """
 
 
 @router.message(CloseRequest.executor_photo, IsPhoto(), ~IsPrivate())

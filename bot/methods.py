@@ -137,8 +137,6 @@ class TechBot(Bot):
             department_id=department_id,
             bitrix_deal_id=bitrix_deal_id)
         user_data = await db.get_employee_by_sign(query.from_user.id)
-        print(current_deal)
-        print(user_data)
         try:
             await self.edit_message_caption(
                 chat_id=await self.group_id(department_id),
@@ -156,7 +154,15 @@ class TechBot(Bot):
         await state.update_data(
             short_description=f'{message.caption[:30]}...')
         data = await state.get_data()
-        await self.clear_messages(message=message, state=state, finish=True)
+        await state.clear()
+        try:
+            await self.delete_message(
+                chat_id=message.from_user.id,
+                message_id=int(data['start_message'])
+            )
+        except Exception:
+            print('Message not found')
+        #await self.clear_messages(message=message, state=state, finish=True)
         action_sender = ChatActionSender(
             bot=self,
             chat_id=message.from_user.id,
@@ -210,8 +216,8 @@ class TechBot(Bot):
                 start_date=current_deal[28],
                 deal_id=current_deal[0],
                 department_id=current_deal[1]) """
-            await self.clear_messages(
-                message=message, state=state, finish=True)
+            """ await self.clear_messages(
+                message=message, state=state, finish=True) """
             user_data = await db.get_employee_by_sign(message.from_user.id)
             is_creator = False
             is_executor = False
@@ -228,7 +234,10 @@ class TechBot(Bot):
                     request_status_id=current_deal[3],
                     is_creator=is_creator,
                     is_executor=is_executor)) """
-            emp_pos_data = await db.get_position(Position.EMPLOYEE.value)
+            """ emp_pos_data = await db.get_position(Position.EMPLOYEE.value) """
+            await message.reply(
+                text='Запрос принят'
+            )
             await self.send_photo(
                 chat_id=await self.group_id(department_id),
                 photo=current_deal[13],
@@ -236,8 +245,8 @@ class TechBot(Bot):
                 reply_markup=create_current_request_menu(
                     user_data=user_data,
                     current_deal=current_deal))
-            executors = await db.get_executors(
-                department_id=department_id)
+            """ executors = await db.get_executors(
+                department_id=department_id) """
             """ if executors is None or executors == []:
                 return
             for executor in executors:
@@ -369,6 +378,7 @@ class TechBot(Bot):
                 reply_markup=create_request_list_menu(
                     page=page, data=data, position_id=user_data[4]))
 
+
     async def close_request(self, message: Message, state: FSMContext):
         await state.update_data(report=message.caption)
         data = await state.get_data()
@@ -440,6 +450,79 @@ class TechBot(Bot):
                     text=request_action_message(
                         action=CreatorButtons.REQUEST.value),
                     reply_markup=create_request_menu())
+
+
+"""     async def close_request(self, message: Message, state: FSMContext):
+        await state.update_data(report=message.caption)
+        data = await state.get_data()
+        db = Database()
+        user_data = await db.get_employee_by_sign(message.from_user.id)
+        bm = await BitrixMethods(
+            department_sign=data['department_id']).collect_portal_data()
+        file_path = await self.generate_deal_photo(
+            file_id=data['executor_photo'])
+        json = update_on_close_json(
+            deal_id=data['deal_id'],
+            # photo_path=file_path,
+            stage_id=f'C{bm.category_id}:{bm.done}',
+            report=message.caption,
+            # photo_field=bm.photo,
+            report_field=bm.report)
+        timeline_json = timeline_add_on_close_json(
+            deal_id=data['deal_id'],
+            photo_path=file_path,
+            comment=message.caption,
+            user=f'{user_data[9]} {user_data[10]}')
+        action_sender = ChatActionSender(
+            bot=self,
+            chat_id=message.from_user.id,
+            action=ChatAction.TYPING)
+        async with action_sender:
+            status = await bm.update_deal(json=json)
+            await bm.timeline_add(json=timeline_json)
+            if status != 200:
+                await self.clear_messages(
+                    message=message, state=state, finish=True)
+                await message.answer(
+                    text=bitrix_create_deal_error_message())
+                return
+            await db.update_photo_and_report_in_request(
+                executor_photo=data['executor_photo'],
+                report=message.caption,
+                department_id=data['department_id'],
+                bitrix_deal_id=data['deal_id'])
+            await db.update_status_id_in_request(
+                status_id=5,
+                department_id=data['department_id'],
+                bitrix_deal_id=data['deal_id'])
+            current_request = await db.get_current_request_of_department(
+                department_id=data['department_id'],
+                bitrix_deal_id=data['deal_id'])
+            await db.update_executor_in_request(
+                executor_telegram_id=message.from_user.id,
+                department_id=data['department_id'],
+                bitrix_deal_id=data['deal_id'])
+            if current_request[5] != message.from_user.id:
+                await self.send_message(
+                    chat_id=current_request[5],
+                    text=done_request_message(),
+                    reply_markup=current_request_keyboard(
+                        department_id=current_request[1],
+                        deal_id=current_request[0],
+                        title=current_request[14]))
+            await self.clear_messages(
+                message=message, state=state, finish=True)
+            if user_data[4] == 4:
+                await message.answer(
+                    text=auth_employee_pos_and_dep_message(
+                        position=user_data[5], department=user_data[7]),
+                    reply_markup=create_menu_by_position(
+                        position_id=user_data[4]))
+            else:
+                await message.answer(
+                    text=request_action_message(
+                        action=CreatorButtons.REQUEST.value),
+                    reply_markup=create_request_menu()) """
 
 
 """     async def track_24_hours(self, deal_id, department_id):

@@ -40,7 +40,7 @@ class BreakTypeCallbackData(CallbackData, prefix='bt_is'):
     break_type: str
 
 
-class CurrentRequestActionCallbackData(CallbackData, prefix='req_act'):
+class CurrentRequestActionCallbackData(CallbackData, prefix='req_act' ):
     current_act: CurrentRequestActionButtons
     status_id: int
     #creator_id: int

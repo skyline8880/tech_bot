@@ -1,5 +1,5 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
-
+from core.secrets import TelegramSectrets
 # from bitrix_api.bitrix_api import BitrixMethods
 from constants.buttons_init import (ActionButtons, CreatorButtons,
                                     CurrentRequestActionButtons, DateReports,
@@ -405,9 +405,11 @@ def create_current_request_menu(user_data, current_deal):
         first_name
     ) = user_data
     fbutton = CurrentRequestActionButtons.INROLE
+    url = None
     second_row_buttons = []
-    if 1 < status_id and status_id < 4:
+    if 1 < status_id and status_id < 5:
         fbutton = CurrentRequestActionButtons.DONE
+        #url = f'https://t.me/{TelegramSectrets.BOT_USERNAME}'
         second_row_buttons = [
             InlineKeyboardButton(
                 text=CurrentRequestActionButtons.HANDOVERMGR.value,
@@ -440,13 +442,12 @@ def create_current_request_menu(user_data, current_deal):
                 #executor_id=executor_telegram_id,
                 department_id=deal_department_id,
                 cur_act_deal=bitrix_deal_id
-                    ).pack()),
+                    ).pack(),
+            url=url),
     ]
     kbrd = [first_row_button]
     if second_row_buttons != []:
         kbrd.append(second_row_buttons)
-
-
     return InlineKeyboardMarkup(
         row_width=1, inline_keyboard=kbrd)
     """ elif request_status_id == 2:
