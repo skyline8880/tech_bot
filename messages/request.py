@@ -101,7 +101,8 @@ def request_wrong_length_photo_caption(length, is_exec=False):
         return False
     return markdown.text(
         markdown.markdown_decoration.quote('Слишком длинное описание!'),
-        markdown.markdown_decoration.quote(f'Допустимо не более: {limit} символов'),
+        markdown.markdown_decoration.quote(
+            f'Допустимо не более: {limit} символов'),
         markdown.markdown_decoration.quote(f'Внесено: {length} символов'),
         sep='\n')
 

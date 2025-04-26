@@ -1,7 +1,5 @@
-import datetime as dt
 from typing import Union
 
-from core.secrets import TelegramSectrets
 from aiogram import Bot, exceptions
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums.chat_action import ChatAction
@@ -9,34 +7,21 @@ from aiogram.enums.parse_mode import ParseMode
 from aiogram.fsm.context import FSMContext
 from aiogram.types import BotCommand, CallbackQuery, Message, input_file
 from aiogram.utils.chat_action import ChatActionSender
-from constants.buttons_init import (CreatorButtons,
-                                    CurrentRequestActionButtons,
-                                    RequestButtons)
-from filters.callback_filters import (BreakTypeCallbackData,
-                                      CurrentRequestActionCallbackData,
-                                      GetCurrentRequestCallbackData,
-                                      RequestActionCallbackData,
-                                      RequestNavigationCallbackData,
-                                      RequestPageInfoCallbackData,
-                                      UserCreatorCallbackData)
-from states.states import (CloseRequest, CreatorRequest, HandoverRequest,
-                           RequestSign)
+
 from bitrix_api.bitrix_api import BitrixMethods
 from bitrix_api.bitrix_params import (asign_deal_id_on_title, create_deal_json,
                                       timeline_add_on_close_json,
                                       update_on_close_json)
 from constants.buttons_init import CreatorButtons
-from constants.database_init import Position
-from core.secrets import get_path
+from core.secrets import TelegramSectrets, get_path
 from database.database import Database
 from keyboards.menu import (create_current_request_menu,
                             create_menu_by_position, create_request_list_menu,
                             create_request_menu, current_request_keyboard)
 from messages.intro import auth_employee_pos_and_dep_message
 from messages.request import (bitrix_create_deal_error_message,
-                              done_request_message, new_request_message,
-                              request_action_message, request_detail_message,
-                              request_list_message)
+                              done_request_message, request_action_message,
+                              request_detail_message, request_list_message)
 from utils.paths import path_to_no_photo_pic
 
 
@@ -89,7 +74,7 @@ class TechBot(Bot):
                 pass
         if finish:
             await state.clear()
-    
+
     async def group_id(self, department_id):
         GROUPS = {
             1: None,
@@ -162,7 +147,7 @@ class TechBot(Bot):
             )
         except Exception:
             print('Message not found')
-        #await self.clear_messages(message=message, state=state, finish=True)
+        # await self.clear_messages(message=message, state=state, finish=True)
         action_sender = ChatActionSender(
             bot=self,
             chat_id=message.from_user.id,
@@ -219,8 +204,6 @@ class TechBot(Bot):
             """ await self.clear_messages(
                 message=message, state=state, finish=True) """
             user_data = await db.get_employee_by_sign(message.from_user.id)
-            is_creator = False
-            is_executor = False
             # if current_deal[5] == user_data[1]:
             # is_creator = True
             """ if current_deal[16] == user_data[1]:
@@ -234,7 +217,8 @@ class TechBot(Bot):
                     request_status_id=current_deal[3],
                     is_creator=is_creator,
                     is_executor=is_executor)) """
-            """ emp_pos_data = await db.get_position(Position.EMPLOYEE.value) """
+            """ emp_pos_data = await db.get_position(
+                    Position.EMPLOYEE.value) """
             await message.reply(
                 text='Запрос принят'
             )
@@ -377,7 +361,6 @@ class TechBot(Bot):
                     position_id=user_data[4], is_own=True),
                 reply_markup=create_request_list_menu(
                     page=page, data=data, position_id=user_data[4]))
-
 
     async def close_request(self, message: Message, state: FSMContext):
         await state.update_data(report=message.caption)

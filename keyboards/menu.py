@@ -1,13 +1,13 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
-from core.secrets import TelegramSectrets
+
 # from bitrix_api.bitrix_api import BitrixMethods
 from constants.buttons_init import (ActionButtons, CreatorButtons,
                                     CurrentRequestActionButtons, DateReports,
                                     ReportsRequest, RequestButtons)
 from constants.database_init import Department, Position
+# from core.secrets import TelegramSectrets
 from filters.callback_filters import (CurrentRequestActionCallbackData,
                                       DateReportsCD, DepartmentCallbackData,
-                                      # FloorCallbackData,
                                       GetCurrentRequestCallbackData,
                                       PositionCallbackData, ReportsRequestCD,
                                       RequestActionCallbackData,
@@ -409,15 +409,13 @@ def create_current_request_menu(user_data, current_deal):
     second_row_buttons = []
     if 1 < status_id and status_id < 5:
         fbutton = CurrentRequestActionButtons.DONE
-        #url = f'https://t.me/{TelegramSectrets.BOT_USERNAME}'
+        # url = f'https://t.me/{TelegramSectrets.BOT_USERNAME}'
         second_row_buttons = [
             InlineKeyboardButton(
                 text=CurrentRequestActionButtons.HANDOVERMGR.value,
                 callback_data=CurrentRequestActionCallbackData(
                     current_act=CurrentRequestActionButtons.HANDOVERMGR,
                     status_id=status_id,
-                    ##creator_id=creator_telegram_id,
-                    ##executor_id=executor_telegram_id,
                     department_id=deal_department_id,
                     cur_act_deal=bitrix_deal_id
                         ).pack()),
@@ -426,8 +424,6 @@ def create_current_request_menu(user_data, current_deal):
                 callback_data=CurrentRequestActionCallbackData(
                     current_act=CurrentRequestActionButtons.HANGON,
                     status_id=status_id,
-                    #creator_id=creator_telegram_id,
-                    #executor_id=executor_telegram_id,
                     department_id=deal_department_id,
                     cur_act_deal=bitrix_deal_id
                         ).pack()),
@@ -438,8 +434,6 @@ def create_current_request_menu(user_data, current_deal):
             callback_data=CurrentRequestActionCallbackData(
                 current_act=fbutton,
                 status_id=status_id,
-                #creator_id=creator_telegram_id,
-                #executor_id=executor_telegram_id,
                 department_id=deal_department_id,
                 cur_act_deal=bitrix_deal_id
                     ).pack(),

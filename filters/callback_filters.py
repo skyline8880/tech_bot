@@ -1,5 +1,6 @@
 from aiogram.filters.callback_data import CallbackData
-from typing import Optional
+
+""" from typing import Optional """
 
 from constants.buttons_init import (ActionButtons, CreatorButtons,
                                     CurrentRequestActionButtons, DateReports,
@@ -40,11 +41,9 @@ class BreakTypeCallbackData(CallbackData, prefix='bt_is'):
     break_type: str
 
 
-class CurrentRequestActionCallbackData(CallbackData, prefix='req_act' ):
+class CurrentRequestActionCallbackData(CallbackData, prefix='req_act'):
     current_act: CurrentRequestActionButtons
     status_id: int
-    #creator_id: int
-    #executor_id: Optional[int]
     department_id: int
     cur_act_deal: int
 

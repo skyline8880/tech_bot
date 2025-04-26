@@ -1,11 +1,11 @@
+from asyncio import sleep as async_sleep
+
 from aiogram import F, Router
 from aiogram.enums.chat_action import ChatAction
 from aiogram.filters import or_f
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 from aiogram.utils.chat_action import ChatActionSender
-from core.secrets import TelegramSectrets
-from asyncio import sleep as async_sleep
 
 from bitrix_api.bitrix_api import BitrixMethods
 from bitrix_api.bitrix_params import timeline_add_on_handover_json, update_json
@@ -13,9 +13,9 @@ from bot.bot import bot
 from constants.buttons_init import (CreatorButtons,
                                     CurrentRequestActionButtons,
                                     RequestButtons)
+from core.secrets import TelegramSectrets
 from database.database import Database
-from filters.callback_filters import (BreakTypeCallbackData,
-                                      CurrentRequestActionCallbackData,
+from filters.callback_filters import (CurrentRequestActionCallbackData,
                                       GetCurrentRequestCallbackData,
                                       RequestActionCallbackData,
                                       RequestNavigationCallbackData,
@@ -24,21 +24,16 @@ from filters.callback_filters import (BreakTypeCallbackData,
 from filters.message_filters import (IsActive, IsAdmin, IsMainAdmin, IsPhoto,
                                      IsPrivate, IsText, IsTop)
 from keyboards.menu import (back_keyboard, cancel_keyboard,
-                            create_departments_menu, create_menu_by_position,
-                            create_request_menu)
-from messages.intro import auth_employee_pos_and_dep_message
+                            create_departments_menu, create_request_menu)
 from messages.request import (bitrix_create_deal_error_message,
-                              enter_request_sign_message,
-                              handover_description_message, no_request_message,
+                              enter_request_sign_message, no_request_message,
                               request_action_message,
                               request_detailed_desc_message,
                               request_photo_message,
                               request_report_photo_message,
-                              request_report_text_message,
-                              request_short_desc_message,
-                              request_wrong_photo_message,
-                              request_wrong_photo_caption,
                               request_wrong_length_photo_caption,
+                              request_wrong_photo_caption,
+                              request_wrong_photo_message,
                               request_wrong_text_message,
                               wrong_request_department_message,
                               wrong_request_sign_message)
@@ -119,7 +114,7 @@ async def get_photo(message: Message, state: FSMContext) -> None:
     if len(message.caption) > 800:
         await message.delete()
         return await message.answer(
-            text=request_wrong_length_photo_caption(len(message.caption)))        
+            text=request_wrong_length_photo_caption(len(message.caption)))
     await state.update_data(creator_photo=message.photo[-1].file_id)
     await bot.create_request(message=message, state=state)
     # await bot.clear_messages(message=message, state=state, finish=False)
@@ -394,8 +389,6 @@ async def action_to_request(query: CallbackQuery, state: FSMContext) -> None:
         deal_id=bitrix_deal_id) """
 
 
-
-
 @router.message(HandoverRequest.comment, IsActive(), IsPrivate(),
                 IsText(), or_f(IsMainAdmin(), IsAdmin(), IsTop()))
 async def get_request_handover_description(
@@ -468,14 +461,12 @@ async def get_request_wrong_handover_description(
 async def action_done_to_request(
         query: CallbackQuery, state: FSMContext) -> None:
     _, act, status_id, department_id, bitrix_deal_id = query.data.split(':')
-    #await query.answer(f'{act}')
     await query.answer(url=f'https://t.me/{TelegramSectrets.BOT_USERNAME}')
-    start_message = await bot.send_message(
+    await bot.send_message(
         chat_id=query.from_user.id,
         text=request_report_photo_message(),
         reply_markup=cancel_keyboard
     )
-    #print(_, act, status_id, department_id, bitrix_deal_id, start_message.message_id)
     """ await state.set_state(CloseRequest.start_message)
     await state.update_data(start_message=query.message.message_id + 1)
     await state.update_data(deal_id=bitrix_deal_id)
@@ -522,7 +513,7 @@ async def get_report_photo(message: Message, state: FSMContext) -> None:
     if text:
         await message.delete()
         return await message.answer(
-            text=text)   
+            text=text)
     await state.update_data(executor_photo=message.photo[-1].file_id)
     await bot.close_request(message=message, state=state)
     """ await bot.clear_messages(message=message, state=state, finish=False)

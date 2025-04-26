@@ -1,9 +1,11 @@
-from aiogram import F, Router
-from aiogram.enums.chat_action import ChatAction
+from aiogram import Router
+
+""" from aiogram.enums.chat_action import ChatAction
 from aiogram.filters import Command
-from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery, Message
-from aiogram.utils.chat_action import ChatActionSender
+from aiogram.fsm.context import FSMContext """
+from aiogram.types import Message
+
+""" from aiogram.utils.chat_action import ChatActionSender
 
 from bot.bot import bot
 from constants.buttons_init import ActionButtons
@@ -16,7 +18,7 @@ from messages.intro import (auth_employee_no_dep_and_pos_message,
                             auth_employee_pos_and_dep_message,
                             unauth_greeting_message)
 from messages.request import request_action_message
-from states.states import AuthStart
+from states.states import AuthStart """
 
 router = Router()
 
