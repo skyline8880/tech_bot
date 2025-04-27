@@ -25,5 +25,7 @@ router = Router()
 
 @router.message()
 async def dev_command(message: Message) -> None:
+    print('simple msg', message.message_id)
+    print('reply msg', message.reply_to_message.message_id)
     # print(message.chat.id, message.from_user.id)
     pass

@@ -195,7 +195,7 @@ def request_list_message(position_id, is_own):
     if is_own:
         list_type = 'ваших'
     object_relation = 'всем объектам'
-    if position_id in (3, 4):
+    if position_id in (4, 5, 6):
         object_relation = 'вашему объекту'
     return markdown.text(
         markdown.markdown_decoration.quote(

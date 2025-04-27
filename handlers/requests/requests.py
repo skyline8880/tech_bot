@@ -76,7 +76,7 @@ async def create_request_action(
         await state.update_data(creator_telegram_id=query.from_user.id)
         await state.update_data(status_id=1)
         user_data = await db.get_employee_by_sign(query.from_user.id)
-        if user_data[4] < 4:
+        if user_data[4] < 6:
             return await query.message.answer(
                 text=choose_department_message(),
                 reply_markup=create_departments_menu(

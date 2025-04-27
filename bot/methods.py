@@ -416,6 +416,11 @@ class TechBot(Bot):
                 text=accept_or_done_request_message(
                     request_data=current_request,
                     is_accept=False))
+            await self.send_message(
+                chat_id=current_request[5],
+                text=accept_or_done_request_message(
+                    request_data=current_request,
+                    is_accept=False))
             group_msg_id = await db.get_group_msg_id_of_request(
                 department_id=data['department_id'],
                 bitrix_deal_id=data['deal_id'])
@@ -429,6 +434,7 @@ class TechBot(Bot):
                         current_deal=current_request))
             except Exception as e:
                 print(f'No changes on edit: {e}')
+            await state.clear()
 
 
 """     async def close_request(self, message: Message, state: FSMContext):
