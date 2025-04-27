@@ -13,7 +13,6 @@ from bot.bot import bot
 from constants.buttons_init import (CreatorButtons,
                                     CurrentRequestActionButtons,
                                     RequestButtons)
-from core.secrets import TelegramSectrets
 from database.database import Database
 from filters.callback_filters import (CurrentRequestActionCallbackData,
                                       GetCurrentRequestCallbackData,
@@ -362,7 +361,7 @@ async def action_to_request(query: CallbackQuery, state: FSMContext) -> None:
         cat = bm.hangon
         if act == CurrentRequestActionButtons.HANDOVERMGR.value:
             status_id_ = 3
-            assigned = bm.head_tech
+            assigned = bm.mgr_tech
             cat = bm.onmgr
         json = update_json(
             deal_id=bitrix_deal_id,
@@ -460,29 +459,6 @@ async def get_request_wrong_handover_description(
         IsActive())
 async def action_done_to_request(
         query: CallbackQuery, state: FSMContext) -> None:
-    _, act, status_id, department_id, bitrix_deal_id = query.data.split(':')
-    await query.answer(url=f'https://t.me/{TelegramSectrets.BOT_USERNAME}')
-    await bot.send_message(
-        chat_id=query.from_user.id,
-        text=request_report_photo_message(),
-        reply_markup=cancel_keyboard
-    )
-    """ await state.set_state(CloseRequest.start_message)
-    await state.update_data(start_message=query.message.message_id + 1)
-    await state.update_data(deal_id=bitrix_deal_id)
-    await state.update_data(department_id=department_id)
-    await state.set_state(CloseRequest.executor_photo)
-    await query.message(
-        text=request_report_photo_message(),
-        reply_markup=cancel_keyboard) """
-
-
-""" @router.callback_query(
-        CurrentRequestActionCallbackData.filter(
-            F.current_act == CurrentRequestActionButtons.DONE),
-        IsActive())
-async def action_done_to_request(
-        query: CallbackQuery, state: FSMContext) -> None:
     act = query.data.split(':')[-1]
     await query.answer(f'{act}')
     request_data = query.message.caption.split('\n')
@@ -499,10 +475,10 @@ async def action_done_to_request(
     await state.set_state(CloseRequest.executor_photo)
     await query.message.answer(
         text=request_report_photo_message(),
-        reply_markup=cancel_keyboard) """
+        reply_markup=cancel_keyboard)
 
 
-@router.message(CloseRequest.executor_photo, IsPhoto(), ~IsPrivate())
+@router.message(CloseRequest.executor_photo, IsPhoto(), IsPrivate())
 async def get_report_photo(message: Message, state: FSMContext) -> None:
     if message.caption is None:
         await message.delete()
@@ -516,11 +492,6 @@ async def get_report_photo(message: Message, state: FSMContext) -> None:
             text=text)
     await state.update_data(executor_photo=message.photo[-1].file_id)
     await bot.close_request(message=message, state=state)
-    """ await bot.clear_messages(message=message, state=state, finish=False)
-    await state.set_state(CloseRequest.report)
-    await message.answer(
-        text=request_report_text_message(),
-        reply_markup=cancel_keyboard) """
 
 
 @router.message(CloseRequest.executor_photo, ~IsPhoto(), ~IsPrivate())

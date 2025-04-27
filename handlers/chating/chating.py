@@ -25,4 +25,5 @@ router = Router()
 
 @router.message()
 async def dev_command(message: Message) -> None:
-    print(message.chat.id, message.from_user.id)
+    # print(message.chat.id, message.from_user.id)
+    pass

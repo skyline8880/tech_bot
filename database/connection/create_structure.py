@@ -52,7 +52,8 @@ CREATE_STRUCTURE = f'''
         executor_telegram_id BIGINT,
         executor_photo VARCHAR(500),
         report VARCHAR(200),
-        create_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        create_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        group_message_id BIGINT DEFAULT NULL
     );
 
     CREATE TABLE IF NOT EXISTS {Tables.SCHEMA}.{Tables.BITRIX_FIELD} (

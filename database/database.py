@@ -15,16 +15,17 @@ from database.query.select import (
     SELECT_DEPARTMENT_ACTIVE_REQUEST_LIST,
     SELECT_DEPARTMENT_REQUESTS_BY_STATUS, SELECT_DEPERTMENT_BY_SIGN,
     SELECT_EMPLOYEE_BY_SIGN, SELECT_EXECUTOR_OWN_ACTIVE_REQUEST_LIST,
-    SELECT_EXECUTORS_BY_DEPRTMENT_ID, SELECT_POSITION_BY_SIGN,
-    SELECT_REPORT_REQUEST_TECH, SELECT_REQUESTS, SELECT_REQUESTS_BY_DEPARTMENT,
-    SELECT_REQUESTS_BY_STATUS, SELECT_STATISTIC_OF_DEPARTMENTS,
-    SELECT_STATUS_BY_SIGN)
+    SELECT_EXECUTORS_BY_DEPRTMENT_ID, SELECT_GROUP_MSG_ID_OF_CURRENT_REQUEST,
+    SELECT_POSITION_BY_SIGN, SELECT_REPORT_REQUEST_TECH, SELECT_REQUESTS,
+    SELECT_REQUESTS_BY_DEPARTMENT, SELECT_REQUESTS_BY_STATUS,
+    SELECT_STATISTIC_OF_DEPARTMENTS, SELECT_STATUS_BY_SIGN)
 from database.query.update import (UPDATE_CREATOR_IN_REQUESTS,
                                    UPDATE_EMPLOYEE_ACTIVITY,
                                    UPDATE_EMPLOYEE_DATA_BY_PHONE,
                                    UPDATE_EMPLOYEE_DATA_BY_TELEGRAM_ID,
                                    UPDATE_EXECUTOR_IN_CURRENT_REQUEST,
                                    UPDATE_EXECUTOR_IN_REQUESTS,
+                                   UPDATE_GROUP_MSG_ID_IN_CURRENT_REQUEST,
                                    UPDATE_PHOTO_AND_REPORT_IN_REQUEST,
                                    UPDATE_POSITION_ID_DEPARTMENT_ID_EMPLOYEE,
                                    UPDATE_REPORT_IN_CURRENT_REQUEST,
@@ -321,6 +322,22 @@ class Database:
         await connection.close()
         return result
 
+    async def get_group_msg_id_of_request(
+            self,
+            department_id,
+            bitrix_deal_id):
+        connection = await CreateConnection()
+        cursor = connection.cursor()
+        await cursor.execute(
+            query=SELECT_GROUP_MSG_ID_OF_CURRENT_REQUEST,
+            params={
+                'department_id': department_id,
+                'bitrix_deal_id': bitrix_deal_id})
+        await connection.commit()
+        await connection.close()
+        result = await cursor.fetchone()
+        return result[0] if result else None
+
     async def get_statistic_of_departments(self, department_id=None):
         WHERE_DEPARTMENT_ID = '\nWHERE dep.id = %(department_id)s'
         params = {'department_id': department_id}
@@ -380,6 +397,22 @@ class Database:
             query=UPDATE_EXECUTOR_IN_CURRENT_REQUEST,
             params={
                 'executor_telegram_id': executor_telegram_id,
+                'department_id': department_id,
+                'bitrix_deal_id': bitrix_deal_id})
+        await connection.commit()
+        await connection.close()
+
+    async def update_group_msg_id_in_request(
+            self,
+            group_message_id,
+            department_id,
+            bitrix_deal_id):
+        connection = await CreateConnection()
+        cursor = connection.cursor()
+        await cursor.execute(
+            query=UPDATE_GROUP_MSG_ID_IN_CURRENT_REQUEST,
+            params={
+                'group_message_id': group_message_id,
                 'department_id': department_id,
                 'bitrix_deal_id': bitrix_deal_id})
         await connection.commit()

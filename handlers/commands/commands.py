@@ -1,6 +1,6 @@
 from aiogram import F, Router
 from aiogram.enums.chat_action import ChatAction
-from aiogram.filters import Command
+from aiogram.filters import Command, CommandObject
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 from aiogram.utils.chat_action import ChatActionSender
@@ -11,12 +11,14 @@ from database.database import Database
 from filters.callback_filters import UserActionsCallbackData
 from filters.message_filters import IsActive, IsAuth, IsDev, IsPrivate
 from keyboards.contact import get_contact_keyboard
-from keyboards.menu import create_menu_by_position, create_request_menu
+from keyboards.menu import (cancel_keyboard, create_menu_by_position,
+                            create_request_menu)
 from messages.intro import (auth_employee_no_dep_and_pos_message,
                             auth_employee_pos_and_dep_message,
                             unauth_greeting_message)
-from messages.request import request_action_message
-from states.states import AuthStart
+from messages.request import (request_action_message,
+                              request_report_photo_message)
+from states.states import AuthStart, CloseRequest
 
 router = Router()
 
@@ -60,7 +62,28 @@ async def start_unauth_command(message: Message, state: FSMContext) -> None:
 
 
 @router.message(Command('start'), IsPrivate(), IsAuth(), IsActive())
-async def start_auth_command(message: Message) -> None:
+async def start_auth_command(
+        message: Message,
+        state: FSMContext,
+        command: CommandObject = None) -> None:
+    if command.args:
+        await message.delete()
+        (
+            department_id,
+            bitrix_deal_id,
+            group_message_id
+        ) = command.args.split('-')
+        await state.set_state(CloseRequest.executor_photo)
+        await state.update_data(deal_id=bitrix_deal_id)
+        await state.update_data(department_id=department_id)
+        await state.update_data(group_msg_id=group_message_id)
+        await state.update_data(executor_telegram_id=message.from_user.id)
+        msg_obj = await bot.send_message(
+            chat_id=message.from_user.id,
+            text=request_report_photo_message(),
+            reply_markup=cancel_keyboard
+        )
+        return await state.update_data(start_message=msg_obj.message_id)
     action_sender = ChatActionSender(
         bot=bot,
         chat_id=message.from_user.id,
@@ -84,9 +107,9 @@ async def start_inactive_command(message: Message) -> None:
 
 
 @router.callback_query(
-        UserActionsCallbackData.filter(
+    UserActionsCallbackData.filter(
             F.action == ActionButtons.CANCEL),
-        IsActive())
+    IsActive())
 async def cancel_action(
         query: CallbackQuery, state: FSMContext) -> None:
     current_query_data = query.data.split(':')[-1]

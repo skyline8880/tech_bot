@@ -63,3 +63,9 @@ UPDATE_CREATOR_IN_REQUESTS = f'''
     SET creator_telegram_id = %(creator_telegram_id)s
     WHERE creator_telegram_id = %(creator_telegram_id)s;
 '''
+UPDATE_GROUP_MSG_ID_IN_CURRENT_REQUEST = f'''
+    UPDATE {Tables.SCHEMA}.{Tables.REQUEST}
+    SET group_message_id = %(group_message_id)s
+    WHERE department_id = %(department_id)s
+    AND bitrix_deal_id = %(bitrix_deal_id)s;
+'''

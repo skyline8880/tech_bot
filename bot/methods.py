@@ -12,15 +12,12 @@ from bitrix_api.bitrix_api import BitrixMethods
 from bitrix_api.bitrix_params import (asign_deal_id_on_title, create_deal_json,
                                       timeline_add_on_close_json,
                                       update_on_close_json)
-from constants.buttons_init import CreatorButtons
 from core.secrets import TelegramSectrets, get_path
 from database.database import Database
 from keyboards.menu import (create_current_request_menu,
-                            create_menu_by_position, create_request_list_menu,
-                            create_request_menu, current_request_keyboard)
-from messages.intro import auth_employee_pos_and_dep_message
-from messages.request import (bitrix_create_deal_error_message,
-                              done_request_message, request_action_message,
+                            create_request_list_menu)
+from messages.request import (accept_or_done_request_message,
+                              bitrix_create_deal_error_message,
                               request_detail_message, request_list_message)
 from utils.paths import path_to_no_photo_pic
 
@@ -122,16 +119,32 @@ class TechBot(Bot):
             department_id=department_id,
             bitrix_deal_id=bitrix_deal_id)
         user_data = await db.get_employee_by_sign(query.from_user.id)
+        is_private = (
+            True if query.message.chat.type == 'private' else False)
         try:
             await self.edit_message_caption(
-                chat_id=await self.group_id(department_id),
+                chat_id=query.message.chat.id,
                 message_id=query.message.message_id,
                 caption=request_detail_message(current_deal),
                 reply_markup=create_current_request_menu(
                     user_data=user_data,
-                    current_deal=current_deal))
+                    current_deal=current_deal,
+                    group_message_id=query.message.message_id,
+                    is_private=is_private))
         except Exception as e:
             print(f'No changes on edit: {e}')
+        msg_group_id = await db.get_group_msg_id_of_request(
+            department_id=department_id,
+            bitrix_deal_id=bitrix_deal_id)
+        if msg_group_id and query.message.chat.type == 'private':
+            await self.edit_message_caption(
+                chat_id=await self.group_id(department_id),
+                message_id=msg_group_id,
+                caption=request_detail_message(current_deal),
+                reply_markup=create_current_request_menu(
+                    user_data=user_data,
+                    current_deal=current_deal,
+                    group_message_id=query.message.message_id))
 
     async def create_request(self, message: Message, state: FSMContext):
         db = Database()
@@ -147,7 +160,6 @@ class TechBot(Bot):
             )
         except Exception:
             print('Message not found')
-        # await self.clear_messages(message=message, state=state, finish=True)
         action_sender = ChatActionSender(
             bot=self,
             chat_id=message.from_user.id,
@@ -201,37 +213,24 @@ class TechBot(Bot):
                 start_date=current_deal[28],
                 deal_id=current_deal[0],
                 department_id=current_deal[1]) """
-            """ await self.clear_messages(
-                message=message, state=state, finish=True) """
             user_data = await db.get_employee_by_sign(message.from_user.id)
-            # if current_deal[5] == user_data[1]:
-            # is_creator = True
-            """ if current_deal[16] == user_data[1]:
-                is_executor = True
-            await self.send_photo(
-                chat_id=message.from_user.id,
-                photo=current_deal[13],
-                caption=request_detail_message(current_deal),
-                reply_markup=create_current_request_menu(
-                    position_id=user_data[4],
-                    request_status_id=current_deal[3],
-                    is_creator=is_creator,
-                    is_executor=is_executor)) """
-            """ emp_pos_data = await db.get_position(
-                    Position.EMPLOYEE.value) """
             await message.reply(
-                text='Запрос принят'
+                text=accept_or_done_request_message(request_data=current_deal)
             )
-            await self.send_photo(
+            group_msg_object = await self.send_photo(
                 chat_id=await self.group_id(department_id),
                 photo=current_deal[13],
                 caption=request_detail_message(current_deal),
                 reply_markup=create_current_request_menu(
                     user_data=user_data,
                     current_deal=current_deal))
+            await db.update_group_msg_id_in_request(
+                group_message_id=group_msg_object.message_id,
+                department_id=department_id,
+                bitrix_deal_id=deal_id)
             """ executors = await db.get_executors(
-                department_id=department_id) """
-            """ if executors is None or executors == []:
+                department_id=department_id)
+            if executors is None or executors == []:
                 return
             for executor in executors:
                 try:
@@ -258,8 +257,12 @@ class TechBot(Bot):
         chat_id = query.from_user.id
         if isinstance(query, CallbackQuery):
             message_id = query.message.message_id
+            is_private = (
+                True if query.message.chat.type == 'private' else False)
         else:
             message_id = query.message_id
+            is_private = (
+                True if query.chat.type == 'private' else False)
         try:
             await self.delete_message(
                 chat_id=chat_id,
@@ -278,10 +281,6 @@ class TechBot(Bot):
             if current_deal is None:
                 return False
             user_data = await db.get_employee_by_sign(employee_sign=chat_id)
-            is_creator = False
-            is_executor = False
-            if user_data[4] == 4:
-                is_executor = True
             photo_data = current_deal[13]
             try:
                 await self.send_photo(
@@ -289,10 +288,9 @@ class TechBot(Bot):
                     photo=photo_data,
                     caption=request_detail_message(current_deal),
                     reply_markup=create_current_request_menu(
-                        position_id=user_data[4],
-                        request_status_id=current_deal[3],
-                        is_creator=is_creator,
-                        is_executor=is_executor))
+                        user_data=user_data,
+                        current_deal=current_deal,
+                        is_private=is_private))
             except exceptions.TelegramBadRequest as e:
                 if str(e) == (
                         "Telegram server says - Bad Request: "
@@ -303,10 +301,9 @@ class TechBot(Bot):
                         photo=photo,
                         caption=request_detail_message(current_deal),
                         reply_markup=create_current_request_menu(
-                            position_id=user_data[4],
-                            request_status_id=current_deal[3],
-                            is_creator=is_creator,
-                            is_executor=is_executor))
+                            user_data=user_data,
+                            current_deal=current_deal,
+                            is_private=is_private))
             except Exception as er:
                 print(f"ERROR: {er}")
             return True
@@ -412,27 +409,26 @@ class TechBot(Bot):
                 executor_telegram_id=message.from_user.id,
                 department_id=data['department_id'],
                 bitrix_deal_id=data['deal_id'])
-            if current_request[5] != message.from_user.id:
-                await self.send_message(
-                    chat_id=current_request[5],
-                    text=done_request_message(),
-                    reply_markup=current_request_keyboard(
-                        department_id=current_request[1],
-                        deal_id=current_request[0],
-                        title=current_request[14]))
-            await self.clear_messages(
-                message=message, state=state, finish=True)
-            if user_data[4] == 4:
-                await message.answer(
-                    text=auth_employee_pos_and_dep_message(
-                        position=user_data[5], department=user_data[7]),
-                    reply_markup=create_menu_by_position(
-                        position_id=user_data[4]))
-            else:
-                await message.answer(
-                    text=request_action_message(
-                        action=CreatorButtons.REQUEST.value),
-                    reply_markup=create_request_menu())
+            await self.delete_message(
+                chat_id=message.from_user.id,
+                message_id=data['start_message'])
+            await message.reply(
+                text=accept_or_done_request_message(
+                    request_data=current_request,
+                    is_accept=False))
+            group_msg_id = await db.get_group_msg_id_of_request(
+                department_id=data['department_id'],
+                bitrix_deal_id=data['deal_id'])
+            try:
+                await self.edit_message_caption(
+                    chat_id=await self.group_id(data['department_id']),
+                    message_id=group_msg_id,
+                    caption=request_detail_message(current_request),
+                    reply_markup=create_current_request_menu(
+                        user_data=user_data,
+                        current_deal=current_request))
+            except Exception as e:
+                print(f'No changes on edit: {e}')
 
 
 """     async def close_request(self, message: Message, state: FSMContext):

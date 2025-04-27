@@ -1,3 +1,5 @@
+import urllib.parse
+
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 # from bitrix_api.bitrix_api import BitrixMethods
@@ -5,7 +7,7 @@ from constants.buttons_init import (ActionButtons, CreatorButtons,
                                     CurrentRequestActionButtons, DateReports,
                                     ReportsRequest, RequestButtons)
 from constants.database_init import Department, Position
-# from core.secrets import TelegramSectrets
+from core.secrets import TelegramSectrets
 from filters.callback_filters import (CurrentRequestActionCallbackData,
                                       DateReportsCD, DepartmentCallbackData,
                                       GetCurrentRequestCallbackData,
@@ -358,7 +360,8 @@ async def create_break_type_menu(department_id):
         row_width=1, inline_keyboard=menu_buttons) """
 
 
-def create_current_request_menu(user_data, current_deal):
+def create_current_request_menu(
+        user_data, current_deal, group_message_id=None, is_private=False):
     (
         bitrix_deal_id,
         deal_department_id,
@@ -409,7 +412,17 @@ def create_current_request_menu(user_data, current_deal):
     second_row_buttons = []
     if 1 < status_id and status_id < 5:
         fbutton = CurrentRequestActionButtons.DONE
-        # url = f'https://t.me/{TelegramSectrets.BOT_USERNAME}'
+        group_message_id = (
+            '' if group_message_id is None else group_message_id)
+        if not is_private:
+            params = urllib.parse.quote(
+                string=(
+                    f'{deal_department_id}-{bitrix_deal_id}'
+                    f'-{group_message_id}'),
+                encoding="utf-8")
+            url = (
+                f'https://t.me/{TelegramSectrets.BOT_USERNAME}'
+                f'?start={params}')
         second_row_buttons = [
             InlineKeyboardButton(
                 text=CurrentRequestActionButtons.HANDOVERMGR.value,
@@ -442,6 +455,8 @@ def create_current_request_menu(user_data, current_deal):
     kbrd = [first_row_button]
     if second_row_buttons != []:
         kbrd.append(second_row_buttons)
+    if is_private:
+        kbrd.append(menu_button)
     return InlineKeyboardMarkup(
         row_width=1, inline_keyboard=kbrd)
     """ elif request_status_id == 2:

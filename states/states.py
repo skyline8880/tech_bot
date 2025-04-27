@@ -26,6 +26,7 @@ class CloseRequest(StatesGroup):
     start_message = State()
     deal_id = State()
     department_id = State()
+    group_msg_id = State()
     executor_telegram_id = State()
     executor_photo = State()
     report = State()

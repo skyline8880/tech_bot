@@ -52,6 +52,11 @@ SELECT_BITRIX_ACCOUNT_BY_DEPARTMENT_ID = f'''
     FROM {Tables.SCHEMA}.{Tables.BITRIX_ACCOUNT}
     WHERE department_id = %(department_id)s;
 '''
+SELECT_GROUP_MSG_ID_OF_CURRENT_REQUEST = f'''
+    SELECT group_message_id FROM {Tables.SCHEMA}.{Tables.REQUEST}
+    WHERE department_id = %(department_id)s
+    AND bitrix_deal_id = %(bitrix_deal_id)s;
+'''
 SELECT_EMPLOYEE_BY_SIGN = f'''
     SELECT
         emp.is_active,
