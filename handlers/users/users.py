@@ -21,6 +21,7 @@ from messages.users import (choose_department_message, choose_position_message,
                             employee_was_fired_message,
                             employee_was_hired_message,
                             employee_wrong_phone_message,
+                            messages_placeholder_text,
                             no_access_department_message,
                             no_access_hire_department_message,
                             no_access_hire_position_message,
@@ -162,3 +163,19 @@ async def choose_employees_position(
     await bot.clear_messages(message=query.message, state=state, finish=True)
     await query.message.answer(
         text=employee_was_hired_message(data['phone']))
+    user_data = await db.get_employee_by_sign(data['phone'])
+    if user_data[1]:
+        group_id = await bot.group_id(department_id=user_data[6])
+        group_border = [user_data[6], user_data[6] + 1]
+        if user_data[4] < 4:
+            group_border = [2, 6]
+        for i in range(group_border[0], group_border[1]):
+            gr_id = await bot.group_id(department_id=i)
+            await bot.unban_chat_member(
+                chat_id=group_id,
+                user_id=user_data[1],
+                only_if_banned=True)
+            group = await bot.get_chat(chat_id=gr_id)
+            await bot.send_message(
+                chat_id=user_data[1],
+                text=messages_placeholder_text(group.invite_link))

@@ -1,6 +1,10 @@
 from aiogram.utils import markdown
 
 
+def messages_placeholder_text(msg):
+    return markdown.markdown_decoration.quote(msg)
+
+
 def employee_phone_entry_message(action):
     return markdown.text(
         markdown.text(

@@ -53,6 +53,7 @@ CREATE_STRUCTURE = f'''
         executor_photo VARCHAR(500),
         report VARCHAR(200),
         create_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        deal_message_id BIGINT DEFAULT NULL,
         group_message_id BIGINT DEFAULT NULL
     );
 

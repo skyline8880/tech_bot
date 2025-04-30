@@ -20,8 +20,8 @@ from filters.callback_filters import (CurrentRequestActionCallbackData,
                                       RequestNavigationCallbackData,
                                       RequestPageInfoCallbackData,
                                       UserCreatorCallbackData)
-from filters.message_filters import (IsActive, IsAdmin, IsMainAdmin, IsPhoto,
-                                     IsPrivate, IsText, IsTop)
+from filters.message_filters import (IsActive, IsAdmin, IsAuth, IsMainAdmin,
+                                     IsPhoto, IsPrivate, IsText, IsTop)
 from keyboards.menu import (back_keyboard, cancel_keyboard,
                             create_departments_menu, create_request_menu)
 from messages.request import (bitrix_create_deal_error_message,
@@ -76,7 +76,7 @@ async def create_request_action(
         await state.update_data(creator_telegram_id=query.from_user.id)
         await state.update_data(status_id=1)
         user_data = await db.get_employee_by_sign(query.from_user.id)
-        if user_data[4] < 6:
+        if user_data[4] < 4:
             return await query.message.answer(
                 text=choose_department_message(),
                 reply_markup=create_departments_menu(
@@ -349,7 +349,7 @@ async def action_to_request(query: CallbackQuery, state: FSMContext) -> None:
                 CurrentRequestActionButtons.INROLE,
                 CurrentRequestActionButtons.HANDOVERMGR,
                 CurrentRequestActionButtons.HANGON})),
-        IsActive())
+        IsActive(), IsAuth())
 async def action_to_request(query: CallbackQuery, state: FSMContext) -> None:
     _, act, status_id, department_id, bitrix_deal_id = query.data.split(':')
     bm = await BitrixMethods(
@@ -456,7 +456,7 @@ async def get_request_wrong_handover_description(
 @router.callback_query(
         CurrentRequestActionCallbackData.filter(
             F.current_act == CurrentRequestActionButtons.DONE),
-        IsActive())
+        IsActive(), IsAuth())
 async def action_done_to_request(
         query: CallbackQuery, state: FSMContext) -> None:
     act = query.data.split(':')[-1]
@@ -478,7 +478,12 @@ async def action_done_to_request(
         reply_markup=cancel_keyboard)
 
 
-@router.message(CloseRequest.executor_photo, IsPhoto(), IsPrivate())
+@router.message(
+        CloseRequest.executor_photo,
+        IsPhoto(),
+        IsPrivate(),
+        IsAuth(),
+        IsActive())
 async def get_report_photo(message: Message, state: FSMContext) -> None:
     if message.caption is None:
         await message.delete()

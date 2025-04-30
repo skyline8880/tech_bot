@@ -1,11 +1,15 @@
+import re
 from typing import Union
 
 from aiogram import Bot, exceptions
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums.chat_action import ChatAction
+from aiogram.enums.chat_type import ChatType
+from aiogram.enums.content_type import ContentType
 from aiogram.enums.parse_mode import ParseMode
 from aiogram.fsm.context import FSMContext
-from aiogram.types import BotCommand, CallbackQuery, Message, input_file
+from aiogram.types import (BotCommand, CallbackQuery, Message, ReplyParameters,
+                           input_file)
 from aiogram.utils.chat_action import ChatActionSender
 
 from bitrix_api.bitrix_api import BitrixMethods
@@ -16,6 +20,7 @@ from core.secrets import TelegramSectrets, get_path
 from database.database import Database
 from keyboards.menu import (create_current_request_menu,
                             create_request_list_menu)
+from messages.chating import message_placeholder
 from messages.request import (accept_or_done_request_message,
                               bitrix_create_deal_error_message,
                               request_detail_message, request_list_message)
@@ -217,13 +222,21 @@ class TechBot(Bot):
             await message.reply(
                 text=accept_or_done_request_message(request_data=current_deal)
             )
+            await db.update_deal_msg_id_in_request(
+                deal_message_id=message.message_id,
+                department_id=data['department_id'],
+                bitrix_deal_id=deal_id)
             group_msg_object = await self.send_photo(
                 chat_id=await self.group_id(department_id),
                 photo=current_deal[13],
                 caption=request_detail_message(current_deal),
                 reply_markup=create_current_request_menu(
                     user_data=user_data,
-                    current_deal=current_deal))
+                    current_deal=current_deal),
+                reply_parameters=ReplyParameters(
+                    message_id=message.message_id,
+                    chat_id=message.from_user.id,
+                    allow_sending_without_reply=True))
             await db.update_group_msg_id_in_request(
                 group_message_id=group_msg_object.message_id,
                 department_id=department_id,
@@ -416,11 +429,25 @@ class TechBot(Bot):
                 text=accept_or_done_request_message(
                     request_data=current_request,
                     is_accept=False))
-            await self.send_message(
+            """ await self.send_message(
                 chat_id=current_request[5],
                 text=accept_or_done_request_message(
                     request_data=current_request,
-                    is_accept=False))
+                    is_accept=False)) """
+            (
+                message_id,
+                chat_id
+            ) = await db.get_deal_msg_id_and_creator_of_request(
+                department_id=data['department_id'],
+                bitrix_deal_id=data['deal_id'])
+            await self.send_photo(
+                chat_id=chat_id,
+                photo=current_request[24],
+                caption=accept_or_done_request_message(
+                    request_data=current_request,
+                    is_accept=False),
+                reply_to_message_id=message_id,
+                allow_sending_without_reply=True)
             group_msg_id = await db.get_group_msg_id_of_request(
                 department_id=data['department_id'],
                 bitrix_deal_id=data['deal_id'])
@@ -432,9 +459,147 @@ class TechBot(Bot):
                     reply_markup=create_current_request_menu(
                         user_data=user_data,
                         current_deal=current_request))
+                await self.send_photo(
+                    chat_id=await self.group_id(data['department_id']),
+                    photo=current_request[24],
+                    caption=accept_or_done_request_message(
+                        request_data=current_request,
+                        is_accept=False),
+                    reply_to_message_id=group_msg_id,
+                    allow_sending_without_reply=True)
             except Exception as e:
                 print(f'No changes on edit: {e}')
             await state.clear()
+
+    async def define_cotent_type(
+            self,
+            message: Message,
+            users_data,
+            message_id,
+            to_chat_id):
+        msg_text = message.text
+        if message.content_type != ContentType.TEXT:
+            msg_text = message.caption
+        msg_text = '' if msg_text is None else msg_text
+
+        match message.content_type:
+            case ContentType.AUDIO.value:
+                file_id = message.audio.file_id
+                await self.send_audio(
+                    chat_id=to_chat_id,
+                    audio=file_id,
+                    caption=message_placeholder(
+                        message=message,
+                        users_data=users_data,
+                        text=msg_text,
+                        message_id=message.message_id,
+                        chat_id=message.chat.id),
+                    reply_to_message_id=message_id,
+                    allow_sending_without_reply=True)
+            case ContentType.DOCUMENT.value:
+                file_id = message.document.file_id
+                await self.send_document(
+                    chat_id=to_chat_id,
+                    document=file_id,
+                    caption=message_placeholder(
+                        message=message,
+                        users_data=users_data,
+                        text=msg_text,
+                        message_id=message.message_id,
+                        chat_id=message.chat.id),
+                    reply_to_message_id=message_id,
+                    allow_sending_without_reply=True)
+            case ContentType.PHOTO.value:
+                file_id = message.photo[0].file_id
+                await self.send_photo(
+                    chat_id=to_chat_id,
+                    photo=file_id,
+                    caption=message_placeholder(
+                        message=message,
+                        users_data=users_data,
+                        text=msg_text,
+                        message_id=message.message_id,
+                        chat_id=message.chat.id),
+                    reply_to_message_id=message_id,
+                    allow_sending_without_reply=True)
+            case ContentType.VIDEO.value:
+                file_id = message.video.file_id
+                await self.send_video(
+                    chat_id=to_chat_id,
+                    video=file_id,
+                    caption=message_placeholder(
+                        message=message,
+                        users_data=users_data,
+                        text=msg_text,
+                        message_id=message.message_id,
+                        chat_id=message.chat.id),
+                    reply_to_message_id=message_id,
+                    allow_sending_without_reply=True)
+            case ContentType.VOICE.value:
+                file_id = message.voice.file_id
+                await self.send_voice(
+                    chat_id=to_chat_id,
+                    voice=file_id,
+                    caption=message_placeholder(
+                        message=message,
+                        users_data=users_data,
+                        text=msg_text,
+                        message_id=message.message_id,
+                        chat_id=message.chat.id),
+                    reply_to_message_id=message_id,
+                    allow_sending_without_reply=True)
+            case ContentType.TEXT.value:
+                await self.send_message(
+                    chat_id=to_chat_id,
+                    text=message_placeholder(
+                        message=message,
+                        users_data=users_data,
+                        text=msg_text,
+                        message_id=message.message_id,
+                        chat_id=message.chat.id),
+                    reply_to_message_id=message_id,
+                    allow_sending_without_reply=True)
+            case _:
+                await message.delete()
+                return False
+        return True
+
+    async def chating(self, message: Message):
+        db = Database()
+        users_data = await db.get_employee_by_sign(message.from_user.id)
+        replied = message.reply_to_message
+        if not replied:
+            return
+        replied_text = replied.text
+        if replied.content_type != ContentType.TEXT:
+            replied_text = replied.caption
+        if not replied_text:
+            return
+        msg_data = re.findall(
+            pattern=r'\b(\D+)\s(\d+)/(-\d+|\d+)\b',
+            string=replied_text)
+        if not msg_data:
+            return
+        pattern_type, primary_id, secondary_id = msg_data[0]
+        message_id = primary_id
+        chat_id = secondary_id
+        if str(pattern_type).lower() != 'код:':
+            (
+                message_id,
+                chat_id
+            ) = await db.get_deal_msg_id_and_creator_of_request(
+                department_id=primary_id,
+                bitrix_deal_id=secondary_id)
+            if message.chat.type == ChatType.PRIVATE:
+                message_id = await db.get_group_msg_id_of_request(
+                    department_id=primary_id,
+                    bitrix_deal_id=secondary_id)
+                chat_id = await self.group_id(department_id=int(primary_id))
+        await self.define_cotent_type(
+            message=message,
+            users_data=users_data,
+            message_id=message_id,
+            to_chat_id=chat_id)
 
 
 """     async def close_request(self, message: Message, state: FSMContext):

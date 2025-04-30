@@ -18,6 +18,7 @@ from messages.intro import (auth_employee_no_dep_and_pos_message,
                             unauth_greeting_message)
 from messages.request import (request_action_message,
                               request_report_photo_message)
+from messages.users import messages_placeholder_text
 from states.states import AuthStart, CloseRequest
 
 router = Router()
@@ -38,8 +39,49 @@ async def dev_command(message: Message) -> None:
         first_name='Сайфуллои',
         phone='79998533965'
     )
-    print('Main admin added')
+    print('DEV - Main admin added')
+    await db.insert_into_employee_hire(
+        position_id=1,
+        department_id=3,
+        phone='79258999734')
+    await db.insert_into_employee_auth(
+        telegram_id=5204359462,
+        username='It_ohana',
+        full_name='ADMIN TELEGRAM OHANA',
+        last_name='Admin',
+        first_name='Admin',
+        phone='79258999734'
+    )
+    print('ADMIN - Main admin added')
+    await db.insert_into_employee_hire(
+        position_id=2,
+        department_id=3,
+        phone='79858518587')
+    await db.insert_into_employee_auth(
+        telegram_id=244904113,
+        username='yushem',
+        full_name='Yury Shemanaev',
+        last_name='Шеманаев',
+        first_name='Юрий',
+        phone='79858518587'
+    )
+    print('HEAD TECH - Admin added')
     user_data = await db.get_employee_by_sign(message.from_user.id)
+    if user_data:
+        group_id = await bot.group_id(department_id=user_data[6])
+        group_border = [user_data[6], user_data[6] + 1]
+        if user_data[4] < 4:
+            group_border = [2, 6]
+        for i in range(group_border[0], group_border[1]):
+            gr_id = await bot.group_id(department_id=i)
+            await bot.unban_chat_member(
+                chat_id=group_id,
+                user_id=user_data[1],
+                only_if_banned=True)
+            group = await bot.get_chat(chat_id=gr_id)
+            await bot.send_message(
+                chat_id=user_data[1],
+                text=messages_placeholder_text(group.invite_link))
     await message.answer(
         text=auth_employee_pos_and_dep_message(
             position=user_data[5], department=user_data[7],

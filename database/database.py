@@ -12,6 +12,7 @@ from database.query.select import (
     SELECT_CREATOR_ANY_ACTIVE_REQUEST_LIST,
     SELECT_CREATOR_DEPARTMENT_ACTIVE_REQUEST_LIST,
     SELECT_CURRENT_REQUEST_OF_DEPARTMENT,
+    SELECT_DEAL_MSG_ID_AND_CREATOR_ID_OF_CURRENT_REQUEST,
     SELECT_DEPARTMENT_ACTIVE_REQUEST_LIST,
     SELECT_DEPARTMENT_REQUESTS_BY_STATUS, SELECT_DEPERTMENT_BY_SIGN,
     SELECT_EMPLOYEE_BY_SIGN, SELECT_EXECUTOR_OWN_ACTIVE_REQUEST_LIST,
@@ -20,6 +21,7 @@ from database.query.select import (
     SELECT_REQUESTS_BY_DEPARTMENT, SELECT_REQUESTS_BY_STATUS,
     SELECT_STATISTIC_OF_DEPARTMENTS, SELECT_STATUS_BY_SIGN)
 from database.query.update import (UPDATE_CREATOR_IN_REQUESTS,
+                                   UPDATE_DEAL_MSG_ID_IN_CURRENT_REQUEST,
                                    UPDATE_EMPLOYEE_ACTIVITY,
                                    UPDATE_EMPLOYEE_DATA_BY_PHONE,
                                    UPDATE_EMPLOYEE_DATA_BY_TELEGRAM_ID,
@@ -338,6 +340,22 @@ class Database:
         result = await cursor.fetchone()
         return result[0] if result else None
 
+    async def get_deal_msg_id_and_creator_of_request(
+            self,
+            department_id,
+            bitrix_deal_id):
+        connection = await CreateConnection()
+        cursor = connection.cursor()
+        await cursor.execute(
+            query=SELECT_DEAL_MSG_ID_AND_CREATOR_ID_OF_CURRENT_REQUEST,
+            params={
+                'department_id': int(department_id),
+                'bitrix_deal_id': int(bitrix_deal_id)})
+        await connection.commit()
+        await connection.close()
+        result = await cursor.fetchone()
+        return result
+
     async def get_statistic_of_departments(self, department_id=None):
         WHERE_DEPARTMENT_ID = '\nWHERE dep.id = %(department_id)s'
         params = {'department_id': department_id}
@@ -413,6 +431,22 @@ class Database:
             query=UPDATE_GROUP_MSG_ID_IN_CURRENT_REQUEST,
             params={
                 'group_message_id': group_message_id,
+                'department_id': department_id,
+                'bitrix_deal_id': bitrix_deal_id})
+        await connection.commit()
+        await connection.close()
+
+    async def update_deal_msg_id_in_request(
+            self,
+            deal_message_id,
+            department_id,
+            bitrix_deal_id):
+        connection = await CreateConnection()
+        cursor = connection.cursor()
+        await cursor.execute(
+            query=UPDATE_DEAL_MSG_ID_IN_CURRENT_REQUEST,
+            params={
+                'deal_message_id': deal_message_id,
                 'department_id': department_id,
                 'bitrix_deal_id': bitrix_deal_id})
         await connection.commit()

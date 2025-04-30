@@ -57,6 +57,14 @@ SELECT_GROUP_MSG_ID_OF_CURRENT_REQUEST = f'''
     WHERE department_id = %(department_id)s
     AND bitrix_deal_id = %(bitrix_deal_id)s;
 '''
+SELECT_DEAL_MSG_ID_AND_CREATOR_ID_OF_CURRENT_REQUEST = f'''
+    SELECT
+        deal_message_id,
+        creator_telegram_id
+    FROM {Tables.SCHEMA}.{Tables.REQUEST}
+    WHERE department_id = %(department_id)s
+    AND bitrix_deal_id = %(bitrix_deal_id)s;
+'''
 SELECT_EMPLOYEE_BY_SIGN = f'''
     SELECT
         emp.is_active,

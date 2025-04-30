@@ -13,6 +13,7 @@ from messages.intro import (auth_employee_no_dep_and_pos_message,
                             auth_employee_wrong_contact_message, auth_success,
                             contact_success, enter_first_name, enter_last_name,
                             wrong_full_name)
+from messages.users import messages_placeholder_text
 from states.states import AuthStart
 
 router = Router()
@@ -88,6 +89,20 @@ async def get_first_name(message: Message, state: FSMContext) -> None:
         reply_markup=remove_conact_keyboard)
     user_data = await db.get_employee_by_sign(message.from_user.id)
     if user_data[0]:
+        group_id = await bot.group_id(department_id=user_data[6])
+        group_border = [user_data[6], user_data[6] + 1]
+        if user_data[4] < 4:
+            group_border = [2, 6]
+        for i in range(group_border[0], group_border[1]):
+            gr_id = await bot.group_id(department_id=i)
+            await bot.unban_chat_member(
+                chat_id=group_id,
+                user_id=user_data[1],
+                only_if_banned=True)
+            group = await bot.get_chat(chat_id=gr_id)
+            await bot.send_message(
+                chat_id=user_data[1],
+                text=messages_placeholder_text(group.invite_link))
         await message.answer(
             text=auth_employee_pos_and_dep_message(
                 position=user_data[5], department=user_data[7],

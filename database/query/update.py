@@ -69,3 +69,9 @@ UPDATE_GROUP_MSG_ID_IN_CURRENT_REQUEST = f'''
     WHERE department_id = %(department_id)s
     AND bitrix_deal_id = %(bitrix_deal_id)s;
 '''
+UPDATE_DEAL_MSG_ID_IN_CURRENT_REQUEST = f'''
+    UPDATE {Tables.SCHEMA}.{Tables.REQUEST}
+    SET deal_message_id = %(deal_message_id)s
+    WHERE department_id = %(department_id)s
+    AND bitrix_deal_id = %(bitrix_deal_id)s;
+'''
