@@ -190,6 +190,26 @@ def accept_or_done_request_message(request_data, is_accept=True):
         sep='\n')
 
 
+def handover_or_hangon_request_message(request_data):
+    deal_id = f'{request_data[1]}/{request_data[0]}'
+    time = dt.datetime.strftime(request_data[26], "%H:%M")
+    return markdown.text(
+        markdown.text(
+            markdown.markdown_decoration.quote('Запрос:'),
+            markdown.code(deal_id)),
+        markdown.text(
+            markdown.markdown_decoration.quote('Дата создания:'),
+            f'{markdown.bold(request_data[26].date())}',
+            f'{markdown.bold(time)}'),
+        markdown.text(
+            markdown.markdown_decoration.quote('Отделение:'),
+            f'{markdown.bold(request_data[2])}'),
+        markdown.text(
+            markdown.markdown_decoration.quote('Изменён статус:'),
+            f'{markdown.bold(request_data[4])}'),
+        sep='\n')
+
+
 def request_list_message(position_id, is_own):
     list_type = 'всех'
     if is_own:

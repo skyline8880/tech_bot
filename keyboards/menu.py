@@ -97,7 +97,7 @@ def create_menu_by_position(position_id):
         creator_menu_borders = [6, 7]
         request_menu_borders = [0, 5]
         if not int(position_id) < 6:
-            request_menu_borders = [1, 4]
+            request_menu_borders = [2, 4]
     menu_buttons = []
     hire_fire = []
     for num, button in enumerate(CreatorButtons, start=1):

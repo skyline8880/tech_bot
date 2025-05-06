@@ -78,6 +78,14 @@ async def get_phone(message: Message, state: FSMContext) -> None:
                 await message.answer(
                     text=no_access_department_message(required_user[7]))
                 return
+        try:
+            for i in range(2, 6):
+                gr_id = await bot.group_id(department_id=i)
+                await bot.ban_chat_member(
+                    chat_id=gr_id,
+                    user_id=required_user[1])
+        except Exception:
+            pass
         await db.update_employee_activity(message.text, False)
         await bot.clear_messages(message=message, state=state, finish=True)
         await message.answer(
@@ -165,17 +173,18 @@ async def choose_employees_position(
         text=employee_was_hired_message(data['phone']))
     user_data = await db.get_employee_by_sign(data['phone'])
     if user_data[1]:
-        group_id = await bot.group_id(department_id=user_data[6])
-        group_border = [user_data[6], user_data[6] + 1]
-        if user_data[4] < 4:
-            group_border = [2, 6]
-        for i in range(group_border[0], group_border[1]):
-            gr_id = await bot.group_id(department_id=i)
-            await bot.unban_chat_member(
-                chat_id=group_id,
-                user_id=user_data[1],
-                only_if_banned=True)
-            group = await bot.get_chat(chat_id=gr_id)
-            await bot.send_message(
-                chat_id=user_data[1],
-                text=messages_placeholder_text(group.invite_link))
+        if user_data[4] != 5:
+            group_id = await bot.group_id(department_id=user_data[6])
+            group_border = [user_data[6], user_data[6] + 1]
+            if user_data[4] < 4:
+                group_border = [2, 6]
+            for i in range(group_border[0], group_border[1]):
+                gr_id = await bot.group_id(department_id=i)
+                await bot.unban_chat_member(
+                    chat_id=group_id,
+                    user_id=user_data[1],
+                    only_if_banned=True)
+                group = await bot.get_chat(chat_id=gr_id)
+                await bot.send_message(
+                    chat_id=user_data[1],
+                    text=messages_placeholder_text(group.invite_link))

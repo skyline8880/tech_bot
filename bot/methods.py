@@ -23,6 +23,7 @@ from keyboards.menu import (create_current_request_menu,
 from messages.chating import message_placeholder
 from messages.request import (accept_or_done_request_message,
                               bitrix_create_deal_error_message,
+                              handover_or_hangon_request_message,
                               request_detail_message, request_list_message)
 from utils.paths import path_to_no_photo_pic
 
@@ -150,6 +151,24 @@ class TechBot(Bot):
                     user_data=user_data,
                     current_deal=current_deal,
                     group_message_id=query.message.message_id))
+        await self.send_message(
+            chat_id=await self.group_id(department_id),
+            text=handover_or_hangon_request_message(
+                request_data=current_deal),
+            reply_to_message_id=msg_group_id,
+            allow_sending_without_reply=True)
+        (
+            message_id,
+            chat_id
+        ) = await db.get_deal_msg_id_and_creator_of_request(
+            department_id=department_id,
+            bitrix_deal_id=bitrix_deal_id)
+        await self.send_message(
+            chat_id=chat_id,
+            text=handover_or_hangon_request_message(
+                request_data=current_deal),
+            reply_to_message_id=message_id,
+            allow_sending_without_reply=True)
 
     async def create_request(self, message: Message, state: FSMContext):
         db = Database()
@@ -170,12 +189,15 @@ class TechBot(Bot):
             chat_id=message.from_user.id,
             action=ChatAction.TYPING)
         async with action_sender:
+            user_data = await db.get_employee_by_sign(message.from_user.id)
             bm = await BitrixMethods(
                 department_sign=data['department_id']).collect_portal_data()
             file_path = await self.generate_deal_photo(
                 file_id=data['creator_photo'])
             department_id = data['department_id']
             title = data['short_description']
+            if user_data[4] == 3:
+                title = f'{str(user_data[5]).split()[-1]} - {title}'
             json = create_deal_json(
                 title=title,
                 assigned_by=bm.tech,
@@ -218,7 +240,6 @@ class TechBot(Bot):
                 start_date=current_deal[28],
                 deal_id=current_deal[0],
                 department_id=current_deal[1]) """
-            user_data = await db.get_employee_by_sign(message.from_user.id)
             await message.reply(
                 text=accept_or_done_request_message(request_data=current_deal)
             )
@@ -422,9 +443,12 @@ class TechBot(Bot):
                 executor_telegram_id=message.from_user.id,
                 department_id=data['department_id'],
                 bitrix_deal_id=data['deal_id'])
-            await self.delete_message(
-                chat_id=message.from_user.id,
-                message_id=data['start_message'])
+            try:
+                await self.delete_message(
+                    chat_id=message.from_user.id,
+                    message_id=data['start_message'])
+            except Exception:
+                print("MSG NOT FOUND")
             await message.reply(
                 text=accept_or_done_request_message(
                     request_data=current_request,

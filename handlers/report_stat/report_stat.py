@@ -37,7 +37,7 @@ async def choose_stat_action(
     db = Database()
     user_data = await db.get_employee_by_sign(query.from_user.id)
     department_id = None
-    if user_data[4] > 2:
+    if user_data[4] > 3:
         department_id = user_data[6]
 
     await query.message.answer(
@@ -342,5 +342,3 @@ async def choose_reports_period_message(
                                  message_id=message.message_id)
         await bot.send_message(chat_id=message.chat.id,
                                text=add_reports_period_message())
-
-    return

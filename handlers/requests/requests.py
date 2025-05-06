@@ -51,7 +51,7 @@ async def choose_request_action(
         query: CallbackQuery, state: FSMContext) -> None:
     current_query_data = query.data.split(':')[-1]
     await query.answer(current_query_data)
-    await bot.clear_messages(message=query.message, state=state, finish=False)
+    await query.message.delete()
     await query.message.answer(
         text=request_action_message(action=current_query_data),
         reply_markup=create_request_menu())
@@ -468,14 +468,14 @@ async def action_done_to_request(
     # department_id = department_data[0]
     await query.message.delete()
     await state.set_state(CloseRequest.start_message)
-    await state.update_data(start_message=query.message.message_id + 1)
     await state.update_data(deal_id=deal_id)
     await state.update_data(department_id=department_id)
-    await state.update_data(creator_telegram_id=query.from_user.id)
+    await state.update_data(executor_telegram_id=query.from_user.id)
     await state.set_state(CloseRequest.executor_photo)
-    await query.message.answer(
+    msg_obj = await query.message.answer(
         text=request_report_photo_message(),
         reply_markup=cancel_keyboard)
+    await state.update_data(start_message=msg_obj.message_id)
 
 
 @router.message(
