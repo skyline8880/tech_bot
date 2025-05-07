@@ -71,8 +71,7 @@ async def create_request_action(
         db = Database()
         current_query_data = query.data.split(':')[-1]
         await query.answer(current_query_data)
-        await bot.clear_messages(
-            message=query.message, state=state, finish=False)
+        await query.message.delete()
         await state.update_data(creator_telegram_id=query.from_user.id)
         await state.update_data(status_id=1)
         user_data = await db.get_employee_by_sign(query.from_user.id)
@@ -351,6 +350,7 @@ async def action_to_request(query: CallbackQuery, state: FSMContext) -> None:
                 CurrentRequestActionButtons.HANGON})),
         IsActive(), IsAuth())
 async def action_to_request(query: CallbackQuery, state: FSMContext) -> None:
+    print(query.data)
     _, act, status_id, department_id, bitrix_deal_id = query.data.split(':')
     bm = await BitrixMethods(
         department_sign=department_id).collect_portal_data()

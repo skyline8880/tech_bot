@@ -1,3 +1,4 @@
+import datetime as dt
 import re
 from typing import Union
 
@@ -143,14 +144,17 @@ class TechBot(Bot):
             department_id=department_id,
             bitrix_deal_id=bitrix_deal_id)
         if msg_group_id and query.message.chat.type == 'private':
-            await self.edit_message_caption(
-                chat_id=await self.group_id(department_id),
-                message_id=msg_group_id,
-                caption=request_detail_message(current_deal),
-                reply_markup=create_current_request_menu(
-                    user_data=user_data,
-                    current_deal=current_deal,
-                    group_message_id=query.message.message_id))
+            try:
+                await self.edit_message_caption(
+                    chat_id=await self.group_id(department_id),
+                    message_id=msg_group_id,
+                    caption=request_detail_message(current_deal),
+                    reply_markup=create_current_request_menu(
+                        user_data=user_data,
+                        current_deal=current_deal,
+                        group_message_id=query.message.message_id))
+            except Exception as e:
+                print(f'No changes on edit: {e}')
         await self.send_message(
             chat_id=await self.group_id(department_id),
             text=handover_or_hangon_request_message(
@@ -229,13 +233,13 @@ class TechBot(Bot):
             current_deal = await db.get_current_request_of_department(
                 department_id=data['department_id'],
                 bitrix_deal_id=deal_id)
-            """ status = await bm.send_to_scheduler(
+            status = await bm.send_to_scheduler(
                 deal_id=deal_id,
                 start_date=dt.datetime.strftime(
                     current_deal[26], '%Y-%m-%d %H:%M:%S'))
             print('ответ от планировщика', status)
             if status != 200:
-                print('Ошибка передачи информации планировщику') """
+                print('Ошибка передачи информации планировщику')
             """  await self.request_timetracker(
                 start_date=current_deal[28],
                 deal_id=current_deal[0],
