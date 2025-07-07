@@ -278,7 +278,7 @@ class Database:
         connection = await CreateConnection()
         cursor = connection.cursor()
         if is_own is not None:
-            if position_id == 3:
+            if position_id in (4, 5):
                 await cursor.execute(
                     query=SELECT_CREATOR_DEPARTMENT_ACTIVE_REQUEST_LIST,
                     params={
@@ -287,7 +287,7 @@ class Database:
                 result = await cursor.fetchall()
                 await connection.close()
                 return result
-            elif position_id == 4:
+            elif position_id > 5:
                 await cursor.execute(
                     query=SELECT_EXECUTOR_OWN_ACTIVE_REQUEST_LIST,
                     params={
@@ -302,7 +302,7 @@ class Database:
             result = await cursor.fetchall()
             await connection.close()
             return result
-        if position_id in (3, 4):
+        if position_id > 3:
             await cursor.execute(
                 query=SELECT_DEPARTMENT_ACTIVE_REQUEST_LIST,
                 params={'department_id': department_id})
@@ -415,8 +415,8 @@ class Database:
             query=UPDATE_EXECUTOR_IN_CURRENT_REQUEST,
             params={
                 'executor_telegram_id': executor_telegram_id,
-                'department_id': department_id,
-                'bitrix_deal_id': bitrix_deal_id})
+                'department_id': int(department_id),
+                'bitrix_deal_id': int(bitrix_deal_id)})
         await connection.commit()
         await connection.close()
 

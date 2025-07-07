@@ -166,4 +166,4 @@ account.db
 # SQL Queries
 query.sql
 # Test file
-test.py
+test*.py
